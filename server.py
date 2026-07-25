@@ -3,6 +3,7 @@ import json
 import time
 import hmac
 import hashlib
+import threading
 import requests
 from flask import Flask, request, jsonify, render_template
 
@@ -13,6 +14,18 @@ CLIENT_SECRET = os.environ.get("TUYA_CLIENT_SECRET", "c607a2a4402e42a6ad5d9bdbc3
 BASE_URL      = os.environ.get("TUYA_BASE_URL", "https://openapi.tuyaeu.com")
 SOCKET_DEVICE_ID = os.environ.get("SOCKET_DEVICE_ID", "bf0f3d3c500b530a54gane")
 LED_DEVICE_ID    = os.environ.get("LED_DEVICE_ID", "bf5298c175e7812b7ecxrb")
+
+_game_state = {
+    "active": False,
+    "mode": None,
+    "round": 1,
+    "currentPlayer": 0,
+    "gameOver": False,
+    "winner": None,
+    "players": [],
+    "updatedAt": 0
+}
+_state_lock = threading.Lock()
 
 def calc_sign(message: str) -> str:
     return hmac.new(
@@ -62,6 +75,30 @@ def send_commands(token: str, device_id: str, commands: list):
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/display")
+def display():
+    return render_template("display.html")
+
+@app.route("/api/state", methods=["GET", "POST"])
+def api_state():
+    global _game_state
+    if request.method == "POST":
+        data = request.get_json(force=True, silent=True) or {}
+        with _state_lock:
+            _game_state = {
+                "active": bool(data.get("active", False)),
+                "mode": data.get("mode"),
+                "round": data.get("round", 1),
+                "currentPlayer": data.get("currentPlayer", 0),
+                "gameOver": bool(data.get("gameOver", False)),
+                "winner": data.get("winner"),
+                "players": data.get("players") or [],
+                "updatedAt": int(time.time() * 1000),
+            }
+        return jsonify({"ok": True})
+    with _state_lock:
+        return jsonify(_game_state)
 
 @app.route("/command", methods=["POST", "OPTIONS"])
 def command():
