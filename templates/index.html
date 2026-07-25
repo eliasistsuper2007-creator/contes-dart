@@ -84,7 +84,6 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 0.4rem;
-      text-shadow: 0 0 40px rgba(0,240,255,0.4);
     }
     .subtitle {
       color: var(--muted);
@@ -111,15 +110,11 @@
       cursor: pointer;
       overflow: hidden;
       transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow:
-        0 0 30px rgba(0,240,255,0.5),
-        0 8px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 0 30px rgba(0,240,255,0.5), 0 8px 20px rgba(0,0,0,0.4);
     }
     .btn-start:hover {
       transform: scale(1.05);
-      box-shadow:
-        0 0 50px rgba(0,240,255,0.7),
-        0 12px 28px rgba(0,0,0,0.5);
+      box-shadow: 0 0 50px rgba(0,240,255,0.7), 0 12px 28px rgba(0,0,0,0.5);
     }
     .btn-start:active { transform: scale(0.97); }
     .btn-start::after {
@@ -150,7 +145,7 @@
       border-radius: 50%;
       background: #333;
       box-shadow: inset 0 0 4px #000;
-      transition: all 0.4s ease;
+      transition: all 0.15s ease;
     }
     .led-dot.off { background: #333; }
     .led-dot.on-red {
@@ -161,12 +156,10 @@
       background: var(--neon-green);
       box-shadow: 0 0 14px var(--neon-green), 0 0 28px rgba(0,255,136,0.5);
     }
-    .led-dot.pulse {
-      animation: pulse 1.2s ease-in-out infinite;
-    }
+    .led-dot.pulse { animation: pulse 0.5s ease-in-out infinite; }
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.15); }
+      50% { opacity: 0.35; transform: scale(1.2); }
     }
 
     .section-title {
@@ -177,11 +170,7 @@
       color: var(--neon-cyan);
     }
 
-    .option-grid {
-      display: grid;
-      gap: 0.7rem;
-      margin-bottom: 1.5rem;
-    }
+    .option-grid { display: grid; gap: 0.7rem; margin-bottom: 1.5rem; }
     .option-btn {
       padding: 0.95rem 1.2rem;
       background: var(--glass);
@@ -226,11 +215,7 @@
       transform: translateY(-2px);
       box-shadow: 0 0 35px rgba(0,255,136,0.5);
     }
-    .btn-primary:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
     .btn-back {
       margin-top: 0.9rem;
@@ -316,7 +301,6 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 1.1rem;
-      position: relative;
       transition: all 0.3s;
     }
     .player-card.active {
@@ -343,11 +327,7 @@
     }
     .player-card.active .player-score { color: var(--neon-cyan); }
     .player-card.winner .player-score { color: var(--neon-green); }
-    .player-meta {
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+    .player-meta { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
 
     .input-section {
       background: var(--panel);
@@ -447,10 +427,7 @@
       font-weight: 600;
       transition: all 0.2s;
     }
-    .modifier-btn:hover {
-      border-color: var(--neon-magenta);
-      color: var(--neon-magenta);
-    }
+    .modifier-btn:hover { border-color: var(--neon-magenta); color: var(--neon-magenta); }
     .modifier-btn.active {
       border-color: var(--neon-cyan);
       background: rgba(0,240,255,0.14);
@@ -475,10 +452,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .number-btn:hover {
-      border-color: var(--neon-cyan);
-      transform: translateY(-1px);
-    }
+    .number-btn:hover { border-color: var(--neon-cyan); transform: translateY(-1px); }
     .number-btn.selected {
       border-color: var(--neon-cyan);
       background: rgba(0,240,255,0.16);
@@ -503,10 +477,7 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .quick-btn:hover {
-      border-color: var(--neon-magenta);
-      color: var(--neon-magenta);
-    }
+    .quick-btn:hover { border-color: var(--neon-magenta); color: var(--neon-magenta); }
 
     .checkout-hint {
       margin-top: 1rem;
@@ -553,11 +524,7 @@
       gap: 0.5rem;
     }
     .history-item .left { flex: 1; }
-    .history-item .right {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-    }
+    .history-item .right { display: flex; align-items: center; gap: 0.45rem; }
     .history-btn {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.04);
@@ -567,10 +534,7 @@
       cursor: pointer;
       font-size: 0.8rem;
     }
-    .history-btn:hover {
-      border-color: var(--neon-cyan);
-      color: var(--neon-cyan);
-    }
+    .history-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
     .history-item:last-child { border-bottom: none; }
     .history-score { color: var(--neon-cyan); font-weight: 600; }
 
@@ -613,13 +577,8 @@
       border: 1px solid var(--border);
       backdrop-filter: blur(8px);
     }
-    .smart-indicator .row {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
+    .smart-indicator .row { display: flex; align-items: center; gap: 0.4rem; }
 
-    /* Winner Overlay */
     .winner-overlay {
       position: fixed;
       inset: 0;
@@ -633,10 +592,7 @@
       visibility: hidden;
       transition: opacity 0.4s ease, visibility 0.4s;
     }
-    .winner-overlay.show {
-      opacity: 1;
-      visibility: visible;
-    }
+    .winner-overlay.show { opacity: 1; visibility: visible; }
     .winner-card {
       text-align: center;
       padding: 2.5rem 2rem;
@@ -661,8 +617,7 @@
       background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: winnerGlow 1.2s ease-in-out infinite alternate;
+      animation: winnerGlow 0.6s ease-in-out infinite alternate;
     }
     @keyframes winnerGlow {
       from { filter: drop-shadow(0 0 10px rgba(0,255,136,0.4)); }
@@ -682,9 +637,7 @@
     <div class="overlay-card">
       <div class="logo">Contes Dart</div>
       <div class="subtitle">Smart Home Edition</div>
-      <button class="btn-start" id="btn-start">
-        <span>▶ START</span>
-      </button>
+      <button class="btn-start" id="btn-start"><span>▶ START</span></button>
       <div class="led-status">
         <div class="led-dot off" id="led-start"></div>
         <span id="led-start-text">LED bereit…</span>
@@ -703,14 +656,8 @@
       <button class="btn-primary" id="btn-mode-next" disabled>WEITER</button>
       <button class="btn-back" id="btn-mode-back">← Zurück</button>
       <div class="device-panel">
-        <div class="device-row">
-          <span>💡 LED</span>
-          <span class="status-badge on">AN (Rot)</span>
-        </div>
-        <div class="device-row">
-          <span>🔌 Steckdose</span>
-          <span class="status-badge off">AUS</span>
-        </div>
+        <div class="device-row"><span>💡 LED</span><span class="status-badge on">AN (Rot)</span></div>
+        <div class="device-row"><span>🔌 Steckdose</span><span class="status-badge off">AUS</span></div>
       </div>
     </div>
   </div>
@@ -728,14 +675,8 @@
       <button class="btn-primary" id="btn-players-next" disabled>SPIEL STARTEN</button>
       <button class="btn-back" id="btn-players-back">← Zurück</button>
       <div class="device-panel">
-        <div class="device-row">
-          <span>💡 LED</span>
-          <span class="status-badge on">AN (Rot)</span>
-        </div>
-        <div class="device-row">
-          <span>🔌 Steckdose</span>
-          <span class="status-badge off">AUS</span>
-        </div>
+        <div class="device-row"><span>💡 LED</span><span class="status-badge on">AN (Rot)</span></div>
+        <div class="device-row"><span>🔌 Steckdose</span><span class="status-badge off">AUS</span></div>
       </div>
     </div>
   </div>
@@ -749,14 +690,8 @@
         <span id="led-activate-text">LED → Grün in Kürze</span>
       </div>
       <div class="device-panel" style="margin-top:1.8rem;">
-        <div class="device-row">
-          <span>💡 LED</span>
-          <span class="status-badge on" id="status-led-act">AN (Rot)</span>
-        </div>
-        <div class="device-row">
-          <span>🔌 Steckdose</span>
-          <span class="status-badge pending" id="status-socket-act">SCHALTE EIN…</span>
-        </div>
+        <div class="device-row"><span>💡 LED</span><span class="status-badge on" id="status-led-act">AN (Rot)</span></div>
+        <div class="device-row"><span>🔌 Steckdose</span><span class="status-badge pending" id="status-socket-act">SCHALTE EIN…</span></div>
       </div>
     </div>
   </div>
@@ -774,7 +709,6 @@
       <div class="row"><span class="led-dot on-green" style="width:10px;height:10px;"></span> LED Grün</div>
       <div class="row">🔌 Steckdose AN</div>
     </div>
-
     <div class="game-header">
       <div class="game-title">DART ARENA</div>
       <div class="header-info">
@@ -782,9 +716,7 @@
         <div>Runde: <span id="info-round">1</span></div>
       </div>
     </div>
-
     <div class="players-grid" id="players-grid"></div>
-
     <div class="input-section">
       <div class="input-label">WURF-AUSWAHL (Single / Double / Triple)</div>
       <div class="turn-info" id="turn-info">Wurf 1 von 3</div>
@@ -792,22 +724,18 @@
         <input type="number" id="score-input" min="0" max="180" placeholder="0" inputmode="numeric" readonly />
         <button class="btn-submit" id="btn-submit">WURF ÜBERNEHMEN</button>
       </div>
-
       <div class="modifier-row">
         <button class="modifier-btn active" data-multiplier="1">Single</button>
         <button class="modifier-btn" data-multiplier="2">Double</button>
         <button class="modifier-btn" data-multiplier="3">Triple</button>
         <button class="modifier-btn" data-multiplier="0">Miss</button>
       </div>
-
       <div class="dart-number-grid" id="dart-number-grid"></div>
-
       <div class="quick-scores">
         <button class="quick-btn" data-score="180">180</button>
         <button class="quick-btn" data-score="140">140</button>
         <button class="quick-btn" data-score="100">100</button>
         <button class="quick-btn" data-score="60">60</button>
-        <button class="quick-btn" data-score="50">50</button>
         <button class="quick-btn" data-score="40">40</button>
         <button class="quick-btn" data-score="26">26</button>
         <button class="quick-btn" data-score="20">20</button>
@@ -815,7 +743,6 @@
       </div>
       <div class="checkout-hint" id="checkout-hint"></div>
     </div>
-
     <div class="history-section">
       <div class="history-title">LETZTE WÜRFE</div>
       <div id="round-summary" class="round-summary">Noch keine Würfe in dieser Runde</div>
@@ -930,12 +857,37 @@
       }
     }
 
+    async function pushGameState(extra = {}) {
+      try {
+        const reset = !!extra.reset;
+        await fetch('/api/state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            active: reset ? false : (!!state.players.length && state.mode != null),
+            mode: reset ? null : state.mode,
+            round: reset ? 1 : state.round,
+            currentPlayer: reset ? 0 : state.currentPlayer,
+            gameOver: reset ? false : state.gameOver,
+            winner: reset ? null : (extra.winner || null),
+            players: reset ? [] : state.players.map(p => ({
+              name: p.name,
+              score: p.score,
+              dartsThrown: p.dartsThrown
+            }))
+          })
+        });
+      } catch (e) {
+        console.error('State sync:', e);
+      }
+    }
+
     function updateLedVisuals() {
       document.querySelectorAll('.led-dot').forEach(d => {
         d.classList.remove('off', 'on-red', 'on-green', 'pulse');
         if (!state.ledOn) d.classList.add('off');
         else if (state.ledColor === 'red') d.classList.add('on-red');
-        else if (state.ledColor === 'green') d.classList.add('on-green');
+        else if (state.ledColor === 'green') d.classList.add('on-green', 'pulse');
       });
     }
 
@@ -952,7 +904,6 @@
       const btn = $('btn-start');
       btn.disabled = true;
       btn.innerHTML = '<span>…</span>';
-
       try {
         await tuyaTurnLedOn('red');
         $('led-start').className = 'led-dot on-red pulse';
@@ -960,10 +911,9 @@
       } catch (err) {
         console.error(err);
         $('led-start').className = 'led-dot on-red pulse';
-        $('led-start-text').textContent = 'LED (lokal) – Server prüfen';
+        $('led-start-text').textContent = 'LED – Server prüfen';
         showToast('LED konnte nicht geschaltet werden', 'bust');
       }
-
       await delay(900);
       overlays.start.classList.add('hidden');
       overlays.mode.classList.remove('hidden');
@@ -993,10 +943,7 @@
     let selectedPlayers = null;
     function renderPlayerNameInputs() {
       const container = $('player-name-inputs');
-      if (!selectedPlayers) {
-        container.innerHTML = '';
-        return;
-      }
+      if (!selectedPlayers) { container.innerHTML = ''; return; }
       container.innerHTML = '';
       for (let i = 0; i < selectedPlayers; i++) {
         const label = document.createElement('label');
@@ -1051,7 +998,7 @@
 
       await delay(700);
       try { await tuyaSetLedGreen(); } catch (err) { console.error(err); }
-      $('led-activate').className = 'led-dot on-green';
+      $('led-activate').className = 'led-dot on-green pulse';
       $('led-activate-text').textContent = 'LED Grün – Bereit!';
       $('status-led-act').textContent = 'AN (Grün)';
       $('status-led-act').className = 'status-badge on';
@@ -1080,6 +1027,7 @@
       updateCheckoutHint();
       updateTurnInfo();
       $('score-input').focus();
+      pushGameState();
     }
 
     function resetToStartScreen() {
@@ -1115,6 +1063,7 @@
       $('player-name-inputs').innerHTML = '';
       selectedMode = null;
       selectedPlayers = null;
+      pushGameState({ reset: true });
     }
 
     function renderPlayers() {
@@ -1174,6 +1123,7 @@
           renderHistory();
           updateCheckoutHint();
           updateTurnInfo();
+          pushGameState();
           showToast('Wurf korrigiert', 'success');
         });
       });
@@ -1222,10 +1172,10 @@
         btn.type = 'button';
         btn.dataset.value = value;
         btn.textContent = value;
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', () => {
           throwSelection.value = Number(btn.dataset.value);
           updateScorePreview();
-          await commitThrow();
+          commitThrow();
         });
         grid.appendChild(btn);
       });
@@ -1233,53 +1183,30 @@
       bullBtn.className = 'number-btn';
       bullBtn.type = 'button';
       bullBtn.dataset.value = 25;
-      bullBtn.dataset.multiplier = 1;
       bullBtn.textContent = 'Bull';
-      bullBtn.addEventListener('click', async () => {
+      bullBtn.addEventListener('click', () => {
         throwSelection.value = 25;
-        throwSelection.multiplier = 1;
         updateScorePreview();
-        await commitThrow();
+        commitThrow();
       });
       grid.appendChild(bullBtn);
-      const dbullBtn = document.createElement('button');
-      dbullBtn.className = 'number-btn';
-      dbullBtn.type = 'button';
-      dbullBtn.dataset.value = 25;
-      dbullBtn.dataset.multiplier = 2;
-      dbullBtn.textContent = 'DBull';
-      dbullBtn.addEventListener('click', async () => {
-        throwSelection.value = 25;
-        throwSelection.multiplier = 2;
-        updateScorePreview();
-        await commitThrow();
-      });
-      grid.appendChild(dbullBtn);
     }
 
     function updateScorePreview() {
       const input = $('score-input');
       document.querySelectorAll('.number-btn').forEach(btn => {
-        const value = Number(btn.dataset.value);
-        const multiplier = btn.dataset.multiplier ? Number(btn.dataset.multiplier) : 1;
-        btn.classList.toggle('selected', value === throwSelection.value && multiplier === throwSelection.multiplier);
+        btn.classList.toggle('selected', Number(btn.dataset.value) === throwSelection.value);
       });
       document.querySelectorAll('.modifier-btn').forEach(btn => {
         btn.classList.toggle('active', Number(btn.dataset.multiplier) === throwSelection.multiplier);
       });
-      if (throwSelection.value === null) {
-        input.value = '';
-        return;
-      }
+      if (throwSelection.value === null) { input.value = ''; return; }
       input.value = throwSelection.value * throwSelection.multiplier;
     }
 
     function updateTurnInfo() {
       const info = $('turn-info');
-      if (!state.players.length) {
-        info.textContent = 'Wurf 1 von 3';
-        return;
-      }
+      if (!state.players.length) { info.textContent = 'Wurf 1 von 3'; return; }
       info.textContent = `${state.players[state.currentPlayer].name} · Wurf ${state.turnThrowIndex + 1} von 3`;
     }
 
@@ -1302,7 +1229,7 @@
       const previous = player.score;
       const remaining = previous - score;
 
-      if (remaining < 0) {
+      if (remaining < 0 || remaining === 1) {
         showToast('BUST!', 'bust');
         state.history.unshift({ player: player.name, score: 0, remaining: previous });
         return;
@@ -1323,17 +1250,16 @@
       renderPlayers();
       renderHistory();
       updateCheckoutHint();
+      pushGameState();
 
       if (player.score === 0) {
         state.gameOver = true;
         showToast(`${player.name} gewinnt! 🏆`, 'success');
         input.value = '';
-
-        // Großer Name
         $('winner-name').textContent = player.name;
         $('overlay-winner').classList.add('show');
+        pushGameState({ winner: player.name });
 
-        // LED grün blinken (~10 Sek), dann Steckdose + LED aus
         try {
           await tuyaBlinkLedGreen(10000, 250);
           await tuyaTurnSocketOff();
@@ -1359,6 +1285,7 @@
         renderHistory();
         updateCheckoutHint();
         updateTurnInfo();
+        pushGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
         input.value = '';
         input.focus();
@@ -1371,9 +1298,10 @@
 
     buildDartNumberGrid();
     updateScorePreview();
+    pushGameState({ reset: true });
 
     document.querySelectorAll('.modifier-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', () => {
         const multiplier = Number(btn.dataset.multiplier);
         if (multiplier === 0) {
           throwSelection.value = 0;
@@ -1382,7 +1310,7 @@
           throwSelection.multiplier = multiplier;
         }
         updateScorePreview();
-        if (throwSelection.value !== null) await commitThrow();
+        if (throwSelection.value !== null) commitThrow();
       });
     });
 
