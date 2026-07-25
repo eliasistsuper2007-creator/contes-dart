@@ -154,7 +154,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.88);
+      padding: 2rem;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(18px);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease, visibility 0.4s;
@@ -164,8 +166,13 @@
       visibility: visible;
     }
     .winner-card {
+      min-width: min(92vw, 760px);
       text-align: center;
-      padding: 2rem;
+      padding: 2.8rem 2.4rem;
+      border-radius: 32px;
+      background: rgba(10, 10, 18, 0.96);
+      border: 1px solid rgba(0, 255, 136, 0.35);
+      box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.16), 0 24px 80px rgba(0, 0, 0, 0.6);
       animation: winnerPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     @keyframes winnerPop {
@@ -174,16 +181,17 @@
     }
     .winner-label {
       font-family: 'Orbitron', sans-serif;
-      font-size: clamp(1rem, 2.5vw, 1.4rem);
-      letter-spacing: 0.25em;
+      font-size: clamp(1.05rem, 2.6vw, 1.45rem);
+      letter-spacing: 0.28em;
       color: #00ff88;
       margin-bottom: 1rem;
+      text-transform: uppercase;
     }
     .winner-name {
       font-family: 'Orbitron', sans-serif;
       font-weight: 900;
-      font-size: clamp(3rem, 14vw, 7rem);
-      letter-spacing: 0.06em;
+      font-size: clamp(3.4rem, 15vw, 8rem);
+      letter-spacing: 0.08em;
       line-height: 1.05;
       background: linear-gradient(135deg, #00ff88, #00f0ff);
       -webkit-background-clip: text;
@@ -192,8 +200,8 @@
       animation: winnerGlow 0.7s ease-in-out infinite alternate;
     }
     @keyframes winnerGlow {
-      from { filter: drop-shadow(0 0 12px rgba(0,255,136,0.4)); }
-      to   { filter: drop-shadow(0 0 40px rgba(0,255,136,0.95)); }
+      from { filter: drop-shadow(0 0 14px rgba(0,255,136,0.4)); }
+      to   { filter: drop-shadow(0 0 45px rgba(0,255,136,0.95)); }
     }
     .winner-sub {
       margin-top: 1.4rem;
@@ -267,14 +275,7 @@
       const checkoutBar = document.getElementById('checkout-bar');
       const checkoutText = document.getElementById('checkout-text');
       const checkoutPlayer = document.getElementById('checkout-player');
-
-      if (!data.active || !data.players || data.players.length === 0) {
-        screen.className = 'screen idle';
-        grid.innerHTML = '';
-        overlay.classList.remove('show');
-        checkoutBar.classList.remove('visible');
-        return;
-      }
+      const players = data.players || [];
 
       screen.className = 'screen live';
       meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>`;
@@ -283,22 +284,46 @@
         winnerName.textContent = data.winner;
         overlay.classList.add('show');
         checkoutBar.classList.remove('visible');
-      } else {
-        overlay.classList.remove('show');
-
-        // Checkout für aktuellen Spieler
-        const current = data.players[data.currentPlayer];
-        const hint = current ? getCheckout(current.score) : null;
-        if (hint && current) {
-          checkoutText.textContent = hint;
-          checkoutPlayer.textContent = current.name + ' · ' + current.score + ' Rest';
-          checkoutBar.classList.add('visible');
-        } else {
-          checkoutBar.classList.remove('visible');
-        }
+        grid.innerHTML = players.map((p, idx) => {
+          const isActive = false;
+          const isWinner = data.winner === p.name;
+          let cls = 'card';
+          if (isActive) cls += ' active';
+          if (isWinner) cls += ' winner';
+          return `
+            <div class="${cls}">
+              <div class="card-name">${p.name}</div>
+              <div class="card-score">${p.score}</div>
+              <div class="card-meta">${p.dartsThrown || 0} Darts</div>
+              ${isWinner ? '<div class="badge winner">SIEGER</div>' : ''}
+            </div>
+          `;
+        }).join('');
+        return;
       }
 
-      grid.innerHTML = data.players.map((p, idx) => {
+      if (!data.active || players.length === 0) {
+        screen.className = 'screen idle';
+        grid.innerHTML = '';
+        overlay.classList.remove('show');
+        checkoutBar.classList.remove('visible');
+        return;
+      }
+
+      overlay.classList.remove('show');
+
+      // Checkout für aktuellen Spieler
+      const current = players[data.currentPlayer];
+      const hint = current ? getCheckout(current.score) : null;
+      if (hint && current) {
+        checkoutText.textContent = hint;
+        checkoutPlayer.textContent = current.name + ' · ' + current.score + ' Rest';
+        checkoutBar.classList.add('visible');
+      } else {
+        checkoutBar.classList.remove('visible');
+      }
+
+      grid.innerHTML = players.map((p, idx) => {
         const isActive = !data.gameOver && idx === data.currentPlayer;
         const isWinner = data.gameOver && data.winner === p.name;
         let cls = 'card';
