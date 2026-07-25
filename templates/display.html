@@ -21,9 +21,7 @@
       display: flex;
       flex-direction: column;
       background: #000;
-    }
-    .screen.idle {
-      background: #000;
+      position: relative;
     }
     .header {
       display: none;
@@ -49,27 +47,6 @@
       letter-spacing: 0.08em;
     }
     .meta span { color: #e8e8f0; font-weight: 700; }
-
-    .winner-banner {
-      display: none;
-      text-align: center;
-      padding: 1rem 1rem 0;
-    }
-    .winner-banner.show { display: block; }
-    .winner-banner .label {
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 0.2em;
-      color: #00ff88;
-      font-size: 1rem;
-    }
-    .winner-banner .name {
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 900;
-      font-size: clamp(2rem, 8vw, 4rem);
-      background: linear-gradient(135deg, #00ff88, #00f0ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
 
     .grid {
       display: none;
@@ -138,6 +115,62 @@
       background: rgba(0,255,136,0.15);
       color: #00ff88;
     }
+
+    /* Großer Gewinner-Overlay (wie auf dem Tablet) */
+    .winner-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.88);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s;
+    }
+    .winner-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .winner-card {
+      text-align: center;
+      padding: 2rem;
+      animation: winnerPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes winnerPop {
+      0% { transform: scale(0.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .winner-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      letter-spacing: 0.25em;
+      color: #00ff88;
+      margin-bottom: 1rem;
+    }
+    .winner-name {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(3rem, 14vw, 7rem);
+      letter-spacing: 0.06em;
+      line-height: 1.05;
+      background: linear-gradient(135deg, #00ff88, #00f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: winnerGlow 0.7s ease-in-out infinite alternate;
+    }
+    @keyframes winnerGlow {
+      from { filter: drop-shadow(0 0 12px rgba(0,255,136,0.4)); }
+      to   { filter: drop-shadow(0 0 40px rgba(0,255,136,0.95)); }
+    }
+    .winner-sub {
+      margin-top: 1.4rem;
+      color: #8a8aa0;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      letter-spacing: 0.08em;
+    }
   </style>
 </head>
 <body>
@@ -146,11 +179,16 @@
       <div class="title">CONTES DART</div>
       <div class="meta" id="meta"></div>
     </div>
-    <div class="winner-banner" id="winner-banner">
-      <div class="label">GEWINNER</div>
-      <div class="name" id="winner-name">—</div>
-    </div>
+
     <div class="grid" id="grid"></div>
+
+    <div class="winner-overlay" id="winner-overlay">
+      <div class="winner-card">
+        <div class="winner-label">GEWINNER</div>
+        <div class="winner-name" id="winner-name">—</div>
+        <div class="winner-sub">Glückwunsch!</div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -168,25 +206,25 @@
       const screen = document.getElementById('screen');
       const grid = document.getElementById('grid');
       const meta = document.getElementById('meta');
-      const banner = document.getElementById('winner-banner');
+      const overlay = document.getElementById('winner-overlay');
       const winnerName = document.getElementById('winner-name');
 
-      // Komplett schwarz, bis Spiel wirklich läuft
       if (!data.active || !data.players || data.players.length === 0) {
         screen.className = 'screen idle';
         grid.innerHTML = '';
-        banner.classList.remove('show');
+        overlay.classList.remove('show');
         return;
       }
 
       screen.className = 'screen live';
       meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>`;
 
+      // Großer Gewinner-Name wie auf dem Tablet
       if (data.gameOver && data.winner) {
-        banner.classList.add('show');
         winnerName.textContent = data.winner;
+        overlay.classList.add('show');
       } else {
-        banner.classList.remove('show');
+        overlay.classList.remove('show');
       }
 
       grid.innerHTML = data.players.map((p, idx) => {
