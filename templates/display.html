@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contes Dart – Anzeige</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #e8e8f0;
+      font-family: 'Rajdhani', system-ui, sans-serif;
+      overflow: hidden;
+    }
+    .screen {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+    }
+    .screen.idle {
+      background: #000;
+    }
+    .header {
+      display: none;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 1.4rem 2rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .screen.live .header { display: flex; }
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      letter-spacing: 0.14em;
+      background: linear-gradient(135deg, #00f0ff, #ff00aa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .meta {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(0.9rem, 2vw, 1.2rem);
+      color: #8a8aa0;
+      letter-spacing: 0.08em;
+    }
+    .meta span { color: #e8e8f0; font-weight: 700; }
+
+    .winner-banner {
+      display: none;
+      text-align: center;
+      padding: 1rem 1rem 0;
+    }
+    .winner-banner.show { display: block; }
+    .winner-banner .label {
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.2em;
+      color: #00ff88;
+      font-size: 1rem;
+    }
+    .winner-banner .name {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2rem, 8vw, 4rem);
+      background: linear-gradient(135deg, #00ff88, #00f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .grid {
+      display: none;
+      flex: 1;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.2rem;
+      padding: 1.5rem 2rem 2rem;
+      align-content: center;
+    }
+    .screen.live .grid { display: grid; }
+
+    .card {
+      background: #0a0a12;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 1.6rem 1.2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .card.active {
+      border-color: #00f0ff;
+      box-shadow: 0 0 40px rgba(0,240,255,0.25);
+      transform: scale(1.04);
+    }
+    .card.winner {
+      border-color: #00ff88;
+      box-shadow: 0 0 50px rgba(0,255,136,0.3);
+    }
+    .card-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1rem, 2.2vw, 1.4rem);
+      letter-spacing: 0.08em;
+      color: #8a8aa0;
+      margin-bottom: 0.5rem;
+    }
+    .card.active .card-name { color: #00f0ff; }
+    .card.winner .card-name { color: #00ff88; }
+    .card-score {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(3.8rem, 14vw, 8rem);
+      line-height: 1;
+      color: #e8e8f0;
+    }
+    .card.active .card-score { color: #00f0ff; }
+    .card.winner .card-score { color: #00ff88; }
+    .card-meta {
+      margin-top: 0.7rem;
+      font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+      color: #8a8aa0;
+    }
+    .badge {
+      display: inline-block;
+      margin-top: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .badge.active {
+      background: rgba(0,240,255,0.15);
+      color: #00f0ff;
+    }
+    .badge.winner {
+      background: rgba(0,255,136,0.15);
+      color: #00ff88;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen idle" id="screen">
+    <div class="header">
+      <div class="title">CONTES DART</div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="winner-banner" id="winner-banner">
+      <div class="label">GEWINNER</div>
+      <div class="name" id="winner-name">—</div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <script>
+    async function loadState() {
+      try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+        render(data);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function render(data) {
+      const screen = document.getElementById('screen');
+      const grid = document.getElementById('grid');
+      const meta = document.getElementById('meta');
+      const banner = document.getElementById('winner-banner');
+      const winnerName = document.getElementById('winner-name');
+
+      // Komplett schwarz, bis Spiel wirklich läuft
+      if (!data.active || !data.players || data.players.length === 0) {
+        screen.className = 'screen idle';
+        grid.innerHTML = '';
+        banner.classList.remove('show');
+        return;
+      }
+
+      screen.className = 'screen live';
+      meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>`;
+
+      if (data.gameOver && data.winner) {
+        banner.classList.add('show');
+        winnerName.textContent = data.winner;
+      } else {
+        banner.classList.remove('show');
+      }
+
+      grid.innerHTML = data.players.map((p, idx) => {
+        const isActive = !data.gameOver && idx === data.currentPlayer;
+        const isWinner = data.gameOver && data.winner === p.name;
+        let cls = 'card';
+        if (isActive) cls += ' active';
+        if (isWinner) cls += ' winner';
+        let badge = '';
+        if (isActive) badge = '<div class="badge active">AM ZUG</div>';
+        if (isWinner) badge = '<div class="badge winner">SIEGER</div>';
+        return `
+          <div class="${cls}">
+            <div class="card-name">${p.name}</div>
+            <div class="card-score">${p.score}</div>
+            <div class="card-meta">${p.dartsThrown || 0} Darts</div>
+            ${badge}
+          </div>
+        `;
+      }).join('');
+    }
+
+    loadState();
+    setInterval(loadState, 800);
+  </script>
+</body>
+</html>
