@@ -807,6 +807,7 @@
         <button class="quick-btn" data-score="140">140</button>
         <button class="quick-btn" data-score="100">100</button>
         <button class="quick-btn" data-score="60">60</button>
+        <button class="quick-btn" data-score="50">50</button>
         <button class="quick-btn" data-score="40">40</button>
         <button class="quick-btn" data-score="26">26</button>
         <button class="quick-btn" data-score="20">20</button>
@@ -1221,10 +1222,10 @@
         btn.type = 'button';
         btn.dataset.value = value;
         btn.textContent = value;
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           throwSelection.value = Number(btn.dataset.value);
           updateScorePreview();
-          commitThrow();
+          await commitThrow();
         });
         grid.appendChild(btn);
       });
@@ -1232,19 +1233,36 @@
       bullBtn.className = 'number-btn';
       bullBtn.type = 'button';
       bullBtn.dataset.value = 25;
+      bullBtn.dataset.multiplier = 1;
       bullBtn.textContent = 'Bull';
-      bullBtn.addEventListener('click', () => {
+      bullBtn.addEventListener('click', async () => {
         throwSelection.value = 25;
+        throwSelection.multiplier = 1;
         updateScorePreview();
-        commitThrow();
+        await commitThrow();
       });
       grid.appendChild(bullBtn);
+      const dbullBtn = document.createElement('button');
+      dbullBtn.className = 'number-btn';
+      dbullBtn.type = 'button';
+      dbullBtn.dataset.value = 25;
+      dbullBtn.dataset.multiplier = 2;
+      dbullBtn.textContent = 'DBull';
+      dbullBtn.addEventListener('click', async () => {
+        throwSelection.value = 25;
+        throwSelection.multiplier = 2;
+        updateScorePreview();
+        await commitThrow();
+      });
+      grid.appendChild(dbullBtn);
     }
 
     function updateScorePreview() {
       const input = $('score-input');
       document.querySelectorAll('.number-btn').forEach(btn => {
-        btn.classList.toggle('selected', Number(btn.dataset.value) === throwSelection.value);
+        const value = Number(btn.dataset.value);
+        const multiplier = btn.dataset.multiplier ? Number(btn.dataset.multiplier) : 1;
+        btn.classList.toggle('selected', value === throwSelection.value && multiplier === throwSelection.multiplier);
       });
       document.querySelectorAll('.modifier-btn').forEach(btn => {
         btn.classList.toggle('active', Number(btn.dataset.multiplier) === throwSelection.multiplier);
@@ -1284,7 +1302,7 @@
       const previous = player.score;
       const remaining = previous - score;
 
-      if (remaining < 0 || remaining === 1) {
+      if (remaining < 0) {
         showToast('BUST!', 'bust');
         state.history.unshift({ player: player.name, score: 0, remaining: previous });
         return;
@@ -1355,7 +1373,7 @@
     updateScorePreview();
 
     document.querySelectorAll('.modifier-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const multiplier = Number(btn.dataset.multiplier);
         if (multiplier === 0) {
           throwSelection.value = 0;
@@ -1364,7 +1382,7 @@
           throwSelection.multiplier = multiplier;
         }
         updateScorePreview();
-        if (throwSelection.value !== null) commitThrow();
+        if (throwSelection.value !== null) await commitThrow();
       });
     });
 
