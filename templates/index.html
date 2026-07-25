@@ -586,7 +586,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(5,5,12,0.88);
+      padding: 2rem;
+      background: rgba(5,5,12,0.9);
       backdrop-filter: blur(16px);
       opacity: 0;
       visibility: hidden;
@@ -594,8 +595,13 @@
     }
     .winner-overlay.show { opacity: 1; visibility: visible; }
     .winner-card {
+      min-width: min(92vw, 760px);
       text-align: center;
-      padding: 2.5rem 2rem;
+      padding: 2.8rem 2.4rem;
+      border-radius: 28px;
+      background: rgba(18,18,28,0.95);
+      border: 1px solid rgba(0,255,136,0.35);
+      box-shadow: 0 0 0 1px rgba(0,255,136,0.15), 0 24px 80px rgba(0,0,0,0.55);
       animation: winnerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     @keyframes winnerPop {
@@ -604,29 +610,31 @@
     }
     .winner-label {
       font-family: 'Orbitron', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.2em;
+      font-size: 1.05rem;
+      letter-spacing: 0.28em;
       color: var(--neon-green);
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.9rem;
+      text-transform: uppercase;
     }
     .winner-name {
       font-family: 'Orbitron', sans-serif;
       font-weight: 900;
-      font-size: clamp(2.5rem, 12vw, 5rem);
+      font-size: clamp(3.2rem, 14vw, 7.4rem);
       letter-spacing: 0.08em;
+      line-height: 1.05;
       background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: winnerGlow 0.6s ease-in-out infinite alternate;
     }
     @keyframes winnerGlow {
-      from { filter: drop-shadow(0 0 10px rgba(0,255,136,0.4)); }
-      to   { filter: drop-shadow(0 0 30px rgba(0,255,136,0.9)); }
+      from { filter: drop-shadow(0 0 12px rgba(0,255,136,0.4)); }
+      to   { filter: drop-shadow(0 0 38px rgba(0,255,136,0.9)); }
     }
     .winner-sub {
       margin-top: 1.2rem;
       color: var(--muted);
-      font-size: 1.05rem;
+      font-size: 1.15rem;
       letter-spacing: 0.06em;
     }
   </style>
@@ -761,6 +769,7 @@
       round: 1,
       history: [],
       gameOver: false,
+      winner: null,
       turnThrows: [],
       turnThrowIndex: 0,
       throwHistory: [],
@@ -869,7 +878,7 @@
             round: reset ? 1 : state.round,
             currentPlayer: reset ? 0 : state.currentPlayer,
             gameOver: reset ? false : state.gameOver,
-            winner: reset ? null : (extra.winner || null),
+            winner: reset ? null : (extra.winner ?? state.winner ?? null),
             players: reset ? [] : state.players.map(p => ({
               name: p.name,
               score: p.score,
@@ -1254,11 +1263,12 @@
 
       if (player.score === 0) {
         state.gameOver = true;
+        state.winner = player.name;
         showToast(`${player.name} gewinnt! 🏆`, 'success');
         input.value = '';
         $('winner-name').textContent = player.name;
         $('overlay-winner').classList.add('show');
-        pushGameState({ winner: player.name });
+        pushGameState({ winner: state.winner });
 
         try {
           await tuyaBlinkLedGreen(10000, 250);
@@ -1270,6 +1280,7 @@
           try { await tuyaTurnLedOff(); } catch (_) {}
         }
 
+        await delay(4000);
         $('overlay-winner').classList.remove('show');
         resetToStartScreen();
         return;
