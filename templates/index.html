@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Contes Dart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07070c;
+      --panel: rgba(18, 18, 28, 0.85);
+      --neon-cyan: #00f0ff;
+      --neon-magenta: #ff00aa;
+      --neon-green: #00ff88;
+      --neon-orange: #ff6b00;
+      --text: #e8e8f0;
+      --muted: #8a8aa0;
+      --glass: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Rajdhani', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,240,255,0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,0,170,0.1), transparent),
+        radial-gradient(ellipse 50% 30% at 10% 80%, rgba(0,255,136,0.08), transparent);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5,5,12,0.92);
+      backdrop-filter: blur(18px);
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+    .overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .overlay-card {
+      width: min(420px, 92vw);
+      padding: 2.5rem 2rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow:
+        0 0 0 1px rgba(0,240,255,0.1),
+        0 25px 50px -12px rgba(0,0,0,0.7),
+        0 0 80px -20px rgba(0,240,255,0.3);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .overlay-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), transparent);
+    }
+
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      letter-spacing: 0.12em;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.4rem;
+      text-shadow: 0 0 40px rgba(0,240,255,0.4);
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 2rem;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-start {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 1.1rem 3.2rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: 0.15em;
+      color: #0a0a12;
+      background: linear-gradient(135deg, var(--neon-cyan), #00c4d4);
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow:
+        0 0 30px rgba(0,240,255,0.5),
+        0 8px 20px rgba(0,0,0,0.4);
+    }
+    .btn-start:hover {
+      transform: scale(1.05);
+      box-shadow:
+        0 0 50px rgba(0,240,255,0.7),
+        0 12px 28px rgba(0,0,0,0.5);
+    }
+    .btn-start:active { transform: scale(0.97); }
+    .btn-start::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      transform: translateX(-100%);
+      animation: shine 3s infinite;
+    }
+    @keyframes shine {
+      0%, 40% { transform: translateX(-100%); }
+      60%, 100% { transform: translateX(100%); }
+    }
+
+    .led-status {
+      margin-top: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    .led-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #333;
+      box-shadow: inset 0 0 4px #000;
+      transition: all 0.4s ease;
+    }
+    .led-dot.off { background: #333; }
+    .led-dot.on-red {
+      background: #ff2244;
+      box-shadow: 0 0 12px #ff2244, 0 0 24px rgba(255,34,68,0.5);
+    }
+    .led-dot.on-green {
+      background: var(--neon-green);
+      box-shadow: 0 0 14px var(--neon-green), 0 0 28px rgba(0,255,136,0.5);
+    }
+    .led-dot.pulse {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.15); }
+    }
+
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.2rem;
+      color: var(--neon-cyan);
+    }
+
+    .option-grid {
+      display: grid;
+      gap: 0.7rem;
+      margin-bottom: 1.5rem;
+    }
+    .option-btn {
+      padding: 0.95rem 1.2rem;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .option-btn:hover {
+      border-color: var(--neon-cyan);
+      background: rgba(0,240,255,0.08);
+      box-shadow: 0 0 20px rgba(0,240,255,0.15);
+    }
+    .option-btn.selected {
+      border-color: var(--neon-cyan);
+      background: rgba(0,240,255,0.15);
+      box-shadow: 0 0 25px rgba(0,240,255,0.25);
+      color: var(--neon-cyan);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 1rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      color: #0a0a12;
+      background: linear-gradient(135deg, var(--neon-green), #00cc6a);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 25px rgba(0,255,136,0.35);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 0 35px rgba(0,255,136,0.5);
+    }
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-back {
+      margin-top: 0.9rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.95rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    .btn-back:hover { color: var(--text); }
+
+    .device-panel {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(0,0,0,0.35);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    .device-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+    }
+    .device-row + .device-row { border-top: 1px solid var(--border); }
+    .status-badge {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .status-badge.off { background: #333; color: #999; }
+    .status-badge.on { background: rgba(0,255,136,0.2); color: var(--neon-green); }
+    .status-badge.pending { background: rgba(255,170,0,0.2); color: #ffaa00; }
+
+    #game-screen {
+      display: none;
+      min-height: 100dvh;
+      padding: 1rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    #game-screen.active { display: block; }
+
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .game-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.1em;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-info {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    .header-info span { color: var(--text); font-weight: 600; }
+
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .player-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.1rem;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .player-card.active {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 30px rgba(0,240,255,0.2);
+    }
+    .player-card.winner {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 40px rgba(0,255,136,0.35);
+    }
+    .player-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .player-score {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 2.6rem;
+      line-height: 1;
+      color: var(--text);
+    }
+    .player-card.active .player-score { color: var(--neon-cyan); }
+    .player-card.winner .player-score { color: var(--neon-green); }
+    .player-meta {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .input-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.4rem;
+      margin-bottom: 1.2rem;
+    }
+    .input-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.05em;
+    }
+    .turn-info {
+      margin-bottom: 0.7rem;
+      color: var(--neon-cyan);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .name-inputs {
+      display: grid;
+      gap: 0.6rem;
+      margin: 0.9rem 0 1.1rem;
+      text-align: left;
+    }
+    .name-input {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.35);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .name-input:focus {
+      outline: none;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 16px rgba(0,240,255,0.18);
+    }
+    .score-input-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+    #score-input {
+      flex: 1;
+      min-width: 120px;
+      padding: 0.9rem 1.1rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-align: center;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--neon-cyan);
+      outline: none;
+      letter-spacing: 0.08em;
+    }
+    #score-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0,240,255,0.25);
+    }
+    .btn-submit {
+      padding: 0.9rem 1.6rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: #0a0a12;
+      background: linear-gradient(135deg, var(--neon-cyan), #00b8c9);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover {
+      box-shadow: 0 0 25px rgba(0,240,255,0.4);
+      transform: translateY(-1px);
+    }
+
+    .modifier-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 0.8rem;
+    }
+    .modifier-btn {
+      padding: 0.5rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--glass);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .modifier-btn:hover {
+      border-color: var(--neon-magenta);
+      color: var(--neon-magenta);
+    }
+    .modifier-btn.active {
+      border-color: var(--neon-cyan);
+      background: rgba(0,240,255,0.14);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 16px rgba(0,240,255,0.16);
+    }
+
+    .dart-number-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(44px, 1fr));
+      gap: 0.55rem;
+      margin-top: 0.9rem;
+    }
+    .number-btn {
+      padding: 0.75rem 0.2rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--glass);
+      color: var(--text);
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .number-btn:hover {
+      border-color: var(--neon-cyan);
+      transform: translateY(-1px);
+    }
+    .number-btn.selected {
+      border-color: var(--neon-cyan);
+      background: rgba(0,240,255,0.16);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 18px rgba(0,240,255,0.18);
+    }
+
+    .quick-scores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.9rem;
+    }
+    .quick-btn {
+      padding: 0.45rem 0.85rem;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .quick-btn:hover {
+      border-color: var(--neon-magenta);
+      color: var(--neon-magenta);
+    }
+
+    .checkout-hint {
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      background: rgba(0,255,136,0.08);
+      border: 1px solid rgba(0,255,136,0.25);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      color: var(--neon-green);
+      display: none;
+    }
+    .checkout-hint.visible { display: block; }
+
+    .history-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.1rem;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .round-summary {
+      margin-top: 0.8rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 10px;
+      background: rgba(0,255,136,0.08);
+      border: 1px solid rgba(0,255,136,0.2);
+      color: var(--neon-green);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .history-title {
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 0.6rem;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.35rem 0;
+      font-size: 0.95rem;
+      border-bottom: 1px solid var(--border);
+      gap: 0.5rem;
+    }
+    .history-item .left { flex: 1; }
+    .history-item .right {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .history-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.2rem 0.45rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .history-btn:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-score { color: var(--neon-cyan); font-weight: 600; }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--panel);
+      border: 1px solid var(--neon-cyan);
+      color: var(--text);
+      padding: 0.9rem 1.6rem;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(0,240,255,0.2);
+      z-index: 200;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.success { border-color: var(--neon-green); }
+    .toast.bust { border-color: var(--neon-orange); color: var(--neon-orange); }
+
+    .smart-indicator {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      background: rgba(0,0,0,0.6);
+      padding: 0.5rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .smart-indicator .row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Winner Overlay */
+    .winner-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 150;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5,5,12,0.88);
+      backdrop-filter: blur(16px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s;
+    }
+    .winner-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .winner-card {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      animation: winnerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes winnerPop {
+      0% { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .winner-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      color: var(--neon-green);
+      margin-bottom: 0.8rem;
+    }
+    .winner-name {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 12vw, 5rem);
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: winnerGlow 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes winnerGlow {
+      from { filter: drop-shadow(0 0 10px rgba(0,255,136,0.4)); }
+      to   { filter: drop-shadow(0 0 30px rgba(0,255,136,0.9)); }
+    }
+    .winner-sub {
+      margin-top: 1.2rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="overlay-start" class="overlay">
+    <div class="overlay-card">
+      <div class="logo">Contes Dart</div>
+      <div class="subtitle">Smart Home Edition</div>
+      <button class="btn-start" id="btn-start">
+        <span>▶ START</span>
+      </button>
+      <div class="led-status">
+        <div class="led-dot off" id="led-start"></div>
+        <span id="led-start-text">LED bereit…</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay-mode" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="section-title">SPIELMODUS</div>
+      <div class="option-grid" id="mode-options">
+        <button class="option-btn" data-mode="501">501</button>
+        <button class="option-btn" data-mode="301">301</button>
+        <button class="option-btn" data-mode="701">701</button>
+      </div>
+      <button class="btn-primary" id="btn-mode-next" disabled>WEITER</button>
+      <button class="btn-back" id="btn-mode-back">← Zurück</button>
+      <div class="device-panel">
+        <div class="device-row">
+          <span>💡 LED</span>
+          <span class="status-badge on">AN (Rot)</span>
+        </div>
+        <div class="device-row">
+          <span>🔌 Steckdose</span>
+          <span class="status-badge off">AUS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay-players" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="section-title">SPIELER ANZAHL</div>
+      <div class="option-grid" id="players-options">
+        <button class="option-btn" data-players="1">1 Spieler</button>
+        <button class="option-btn" data-players="2">2 Spieler</button>
+        <button class="option-btn" data-players="3">3 Spieler</button>
+        <button class="option-btn" data-players="4">4 Spieler</button>
+      </div>
+      <div id="player-name-inputs" class="name-inputs"></div>
+      <button class="btn-primary" id="btn-players-next" disabled>SPIEL STARTEN</button>
+      <button class="btn-back" id="btn-players-back">← Zurück</button>
+      <div class="device-panel">
+        <div class="device-row">
+          <span>💡 LED</span>
+          <span class="status-badge on">AN (Rot)</span>
+        </div>
+        <div class="device-row">
+          <span>🔌 Steckdose</span>
+          <span class="status-badge off">AUS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay-activate" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="logo" style="font-size:1.6rem;">AKTIVIERE</div>
+      <div class="subtitle" id="activate-text">Steckdose wird eingeschaltet…</div>
+      <div class="led-status" style="margin-top:1.5rem;">
+        <div class="led-dot on-red pulse" id="led-activate"></div>
+        <span id="led-activate-text">LED → Grün in Kürze</span>
+      </div>
+      <div class="device-panel" style="margin-top:1.8rem;">
+        <div class="device-row">
+          <span>💡 LED</span>
+          <span class="status-badge on" id="status-led-act">AN (Rot)</span>
+        </div>
+        <div class="device-row">
+          <span>🔌 Steckdose</span>
+          <span class="status-badge pending" id="status-socket-act">SCHALTE EIN…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay-winner" class="winner-overlay">
+    <div class="winner-card">
+      <div class="winner-label">GEWINNER</div>
+      <div class="winner-name" id="winner-name">—</div>
+      <div class="winner-sub">LED blinkt grün… Geräte schalten in 5 Sek. aus</div>
+    </div>
+  </div>
+
+  <div id="game-screen">
+    <div class="smart-indicator">
+      <div class="row"><span class="led-dot on-green" style="width:10px;height:10px;"></span> LED Grün</div>
+      <div class="row">🔌 Steckdose AN</div>
+    </div>
+
+    <div class="game-header">
+      <div class="game-title">DART ARENA</div>
+      <div class="header-info">
+        <div>Modus: <span id="info-mode">501</span></div>
+        <div>Runde: <span id="info-round">1</span></div>
+      </div>
+    </div>
+
+    <div class="players-grid" id="players-grid"></div>
+
+    <div class="input-section">
+      <div class="input-label">WURF-AUSWAHL (Single / Double / Triple)</div>
+      <div class="turn-info" id="turn-info">Wurf 1 von 3</div>
+      <div class="score-input-row">
+        <input type="number" id="score-input" min="0" max="180" placeholder="0" inputmode="numeric" readonly />
+        <button class="btn-submit" id="btn-submit">WURF ÜBERNEHMEN</button>
+      </div>
+
+      <div class="modifier-row">
+        <button class="modifier-btn active" data-multiplier="1">Single</button>
+        <button class="modifier-btn" data-multiplier="2">Double</button>
+        <button class="modifier-btn" data-multiplier="3">Triple</button>
+        <button class="modifier-btn" data-multiplier="0">Miss</button>
+      </div>
+
+      <div class="dart-number-grid" id="dart-number-grid"></div>
+
+      <div class="quick-scores">
+        <button class="quick-btn" data-score="180">180</button>
+        <button class="quick-btn" data-score="140">140</button>
+        <button class="quick-btn" data-score="100">100</button>
+        <button class="quick-btn" data-score="60">60</button>
+        <button class="quick-btn" data-score="40">40</button>
+        <button class="quick-btn" data-score="26">26</button>
+        <button class="quick-btn" data-score="20">20</button>
+        <button class="quick-btn" data-score="0">0 / Miss</button>
+      </div>
+      <div class="checkout-hint" id="checkout-hint"></div>
+    </div>
+
+    <div class="history-section">
+      <div class="history-title">LETZTE WÜRFE</div>
+      <div id="round-summary" class="round-summary">Noch keine Würfe in dieser Runde</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const state = {
+      mode: null,
+      playerCount: null,
+      players: [],
+      currentPlayer: 0,
+      round: 1,
+      history: [],
+      gameOver: false,
+      turnThrows: [],
+      turnThrowIndex: 0,
+      throwHistory: [],
+      ledOn: false,
+      ledColor: 'off',
+      socketOn: false
+    };
+
+    const $ = id => document.getElementById(id);
+    const overlays = {
+      start: $('overlay-start'),
+      mode: $('overlay-mode'),
+      players: $('overlay-players'),
+      activate: $('overlay-activate')
+    };
+
+    async function tuyaAction(action) {
+      const res = await fetch('/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      const text = await res.text();
+      console.log('[TUYA]', action, res.status, text);
+      if (!res.ok) throw new Error('Tuya-Fehler: ' + text);
+      return true;
+    }
+
+    async function tuyaTurnLedOn(color = 'red') {
+      state.ledOn = true;
+      state.ledColor = color;
+      updateLedVisuals();
+      if (color === 'red') await tuyaAction('led_red');
+      else if (color === 'green') await tuyaAction('led_green');
+      return true;
+    }
+
+    async function tuyaTurnSocketOn() {
+      await tuyaAction('socket_on');
+      state.socketOn = true;
+      return true;
+    }
+
+    async function tuyaTurnSocketOff() {
+      await tuyaAction('socket_off');
+      state.socketOn = false;
+      return true;
+    }
+
+    async function tuyaSetLedGreen() {
+      state.ledColor = 'green';
+      updateLedVisuals();
+      await tuyaAction('led_green');
+      return true;
+    }
+
+    async function tuyaTurnLedOff() {
+      state.ledOn = false;
+      state.ledColor = 'off';
+      updateLedVisuals();
+      await tuyaAction('led_off');
+      return true;
+    }
+
+    async function tuyaBlinkLedGreen(durationMs = 5000, intervalMs = 450) {
+      const end = Date.now() + durationMs;
+      let on = true;
+      while (Date.now() < end) {
+        try {
+          if (on) {
+            state.ledOn = true;
+            state.ledColor = 'green';
+            updateLedVisuals();
+            await tuyaAction('led_green');
+          } else {
+            state.ledOn = false;
+            state.ledColor = 'off';
+            updateLedVisuals();
+            await tuyaAction('led_off');
+          }
+        } catch (e) {
+          console.error('Blink-Fehler:', e);
+        }
+        on = !on;
+        await delay(intervalMs);
+      }
+      try {
+        state.ledOn = false;
+        state.ledColor = 'off';
+        updateLedVisuals();
+        await tuyaAction('led_off');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function updateLedVisuals() {
+      document.querySelectorAll('.led-dot').forEach(d => {
+        d.classList.remove('off', 'on-red', 'on-green', 'pulse');
+        if (!state.ledOn) d.classList.add('off');
+        else if (state.ledColor === 'red') d.classList.add('on-red');
+        else if (state.ledColor === 'green') d.classList.add('on-green');
+      });
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function showToast(msg, type = '') {
+      const t = $('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + type;
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    $('btn-start').addEventListener('click', async () => {
+      const btn = $('btn-start');
+      btn.disabled = true;
+      btn.innerHTML = '<span>…</span>';
+
+      try {
+        await tuyaTurnLedOn('red');
+        $('led-start').className = 'led-dot on-red pulse';
+        $('led-start-text').textContent = 'LED Rot eingeschaltet';
+      } catch (err) {
+        console.error(err);
+        $('led-start').className = 'led-dot on-red pulse';
+        $('led-start-text').textContent = 'LED (lokal) – Server prüfen';
+        showToast('LED konnte nicht geschaltet werden', 'bust');
+      }
+
+      await delay(900);
+      overlays.start.classList.add('hidden');
+      overlays.mode.classList.remove('hidden');
+    });
+
+    let selectedMode = null;
+    document.querySelectorAll('#mode-options .option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#mode-options .option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedMode = btn.dataset.mode;
+        $('btn-mode-next').disabled = false;
+      });
+    });
+    $('btn-mode-next').addEventListener('click', () => {
+      state.mode = parseInt(selectedMode, 10);
+      overlays.mode.classList.add('hidden');
+      overlays.players.classList.remove('hidden');
+    });
+    $('btn-mode-back').addEventListener('click', () => {
+      overlays.mode.classList.add('hidden');
+      overlays.start.classList.remove('hidden');
+      $('btn-start').disabled = false;
+      $('btn-start').innerHTML = '<span>▶ START</span>';
+    });
+
+    let selectedPlayers = null;
+    function renderPlayerNameInputs() {
+      const container = $('player-name-inputs');
+      if (!selectedPlayers) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = '';
+      for (let i = 0; i < selectedPlayers; i++) {
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        label.innerHTML = `<div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.35rem;">Spieler ${i + 1}</div>`;
+        const input = document.createElement('input');
+        input.className = 'name-input';
+        input.placeholder = `Name Spieler ${i + 1}`;
+        input.value = state.players[i]?.name || '';
+        label.appendChild(input);
+        container.appendChild(label);
+      }
+    }
+
+    document.querySelectorAll('#players-options .option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#players-options .option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedPlayers = parseInt(btn.dataset.players, 10);
+        renderPlayerNameInputs();
+        $('btn-players-next').disabled = false;
+      });
+    });
+
+    $('btn-players-next').addEventListener('click', async () => {
+      state.playerCount = selectedPlayers;
+      overlays.players.classList.add('hidden');
+      overlays.activate.classList.remove('hidden');
+
+      const nameInputs = Array.from(document.querySelectorAll('#player-name-inputs .name-input'));
+      state.players = nameInputs.map((input, idx) => ({
+        name: input.value.trim() || `Spieler ${idx + 1}`,
+        score: state.mode,
+        dartsThrown: 0
+      }));
+
+      $('status-socket-act').textContent = 'SCHALTE EIN…';
+      $('status-socket-act').className = 'status-badge pending';
+
+      try {
+        await tuyaTurnSocketOn();
+        $('status-socket-act').textContent = 'AN';
+        $('status-socket-act').className = 'status-badge on';
+        $('activate-text').textContent = 'Steckdose ist an – LED wechselt auf Grün…';
+      } catch (err) {
+        console.error(err);
+        $('status-socket-act').textContent = 'FEHLER';
+        $('status-socket-act').className = 'status-badge off';
+        $('activate-text').textContent = 'Fehler beim Einschalten der Steckdose';
+        showToast('Steckdose konnte nicht eingeschaltet werden', 'bust');
+      }
+
+      await delay(700);
+      try { await tuyaSetLedGreen(); } catch (err) { console.error(err); }
+      $('led-activate').className = 'led-dot on-green';
+      $('led-activate-text').textContent = 'LED Grün – Bereit!';
+      $('status-led-act').textContent = 'AN (Grün)';
+      $('status-led-act').className = 'status-badge on';
+
+      await delay(1100);
+      startGame();
+    });
+
+    $('btn-players-back').addEventListener('click', () => {
+      overlays.players.classList.add('hidden');
+      overlays.mode.classList.remove('hidden');
+    });
+
+    function startGame() {
+      overlays.activate.classList.add('hidden');
+      $('game-screen').classList.add('active');
+      state.currentPlayer = 0;
+      state.round = 1;
+      state.history = [];
+      state.gameOver = false;
+      state.turnThrows = [];
+      state.turnThrowIndex = 0;
+      state.throwHistory = [];
+      $('info-mode').textContent = state.mode;
+      renderPlayers();
+      updateCheckoutHint();
+      updateTurnInfo();
+      $('score-input').focus();
+    }
+
+    function resetToStartScreen() {
+      overlays.activate.classList.add('hidden');
+      overlays.mode.classList.add('hidden');
+      overlays.players.classList.add('hidden');
+      overlays.start.classList.remove('hidden');
+      $('game-screen').classList.remove('active');
+      $('overlay-winner').classList.remove('show');
+
+      state.mode = null;
+      state.playerCount = null;
+      state.players = [];
+      state.currentPlayer = 0;
+      state.round = 1;
+      state.history = [];
+      state.gameOver = false;
+      state.turnThrows = [];
+      state.turnThrowIndex = 0;
+      state.throwHistory = [];
+      state.ledOn = false;
+      state.ledColor = 'off';
+      state.socketOn = false;
+
+      updateLedVisuals();
+      $('btn-start').disabled = false;
+      $('btn-start').innerHTML = '<span>▶ START</span>';
+      $('score-input').value = '';
+      resetThrowSelection();
+
+      document.querySelectorAll('#mode-options .option-btn').forEach(btn => btn.classList.remove('selected'));
+      document.querySelectorAll('#players-options .option-btn').forEach(btn => btn.classList.remove('selected'));
+      $('player-name-inputs').innerHTML = '';
+      selectedMode = null;
+      selectedPlayers = null;
+    }
+
+    function renderPlayers() {
+      const grid = $('players-grid');
+      grid.innerHTML = '';
+      state.players.forEach((p, idx) => {
+        const card = document.createElement('div');
+        card.className = 'player-card' +
+          (idx === state.currentPlayer && !state.gameOver ? ' active' : '') +
+          (p.score === 0 ? ' winner' : '');
+        card.innerHTML = `
+          <div class="player-name">${p.name}</div>
+          <div class="player-score">${p.score}</div>
+          <div class="player-meta">${p.dartsThrown} Darts</div>
+        `;
+        grid.appendChild(card);
+      });
+      $('info-round').textContent = state.round;
+    }
+
+    function renderHistory() {
+      const list = $('history-list');
+      const summary = $('round-summary');
+      if (state.turnThrows.length > 0) {
+        const throwsText = state.turnThrows.map((v, idx) => `W${idx + 1}: ${v}`).join(' · ');
+        summary.innerHTML = `<strong>Aktuelle Runde:</strong> ${throwsText} <br> Summe: <strong>${state.turnThrows.reduce((a, b) => a + b, 0)}</strong>`;
+      } else {
+        summary.innerHTML = 'Noch keine Würfe in dieser Runde';
+      }
+
+      list.innerHTML = state.throwHistory.slice(0, 20).map((entry, idx) => `
+        <div class="history-item">
+          <div class="left">
+            <div>${entry.player}</div>
+            <div style="color:var(--muted);font-size:0.82rem;">${entry.label}</div>
+          </div>
+          <div class="right">
+            <span class="history-score">-${entry.score}</span>
+            <button class="history-btn" data-index="${idx}">Ändern</button>
+          </div>
+        </div>
+      `).join('') || '<div style="color:var(--muted);font-size:0.9rem;">Noch keine Würfe</div>';
+
+      document.querySelectorAll('.history-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.index);
+          const entry = state.throwHistory[idx];
+          if (!entry) return;
+          const player = state.players.find(p => p.name === entry.player);
+          if (!player) return;
+          player.score = player.score + entry.score;
+          player.dartsThrown = Math.max(0, player.dartsThrown - 1);
+          state.throwHistory.splice(idx, 1);
+          state.turnThrows = state.turnThrows.filter((_, i) => i !== idx);
+          state.turnThrowIndex = Math.max(0, state.turnThrowIndex - 1);
+          renderPlayers();
+          renderHistory();
+          updateCheckoutHint();
+          updateTurnInfo();
+          showToast('Wurf korrigiert', 'success');
+        });
+      });
+    }
+
+    const commonCheckouts = {
+      170: 'T20 T20 Bull', 167: 'T20 T19 Bull', 164: 'T20 T18 Bull', 161: 'T20 T17 Bull',
+      160: 'T20 T20 D20', 158: 'T20 T20 D19', 157: 'T20 T19 D20', 156: 'T20 T20 D18',
+      155: 'T20 T19 D19', 154: 'T20 T18 D20', 152: 'T20 T20 D16', 151: 'T20 T17 D20',
+      150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20', 147: 'T20 T17 D18',
+      146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12', 143: 'T20 T17 D16',
+      142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10', 136: 'T20 T20 D8',
+      132: 'T20 T16 D12', 130: 'T20 T20 D5', 120: 'T20 20 D20', 110: 'T20 10 D20',
+      100: 'T20 D20', 98: 'T20 D19', 96: 'T20 D18', 80: 'T20 D10', 60: '20 D20',
+      50: 'Bull / 10 D20', 40: 'D20', 36: 'D18', 32: 'D16', 24: 'D12', 20: 'D10',
+      16: 'D8', 8: 'D4', 4: 'D2', 2: 'D1'
+    };
+
+    function updateCheckoutHint() {
+      const p = state.players[state.currentPlayer];
+      const hint = $('checkout-hint');
+      if (!p || p.score > 170 || p.score === 0) {
+        hint.classList.remove('visible');
+        return;
+      }
+      const suggestion = commonCheckouts[p.score];
+      if (suggestion) {
+        hint.textContent = `Checkout: ${suggestion}`;
+        hint.classList.add('visible');
+      } else if (p.score <= 40 && p.score % 2 === 0) {
+        hint.textContent = `Checkout: D${p.score / 2}`;
+        hint.classList.add('visible');
+      } else {
+        hint.classList.remove('visible');
+      }
+    }
+
+    const throwSelection = { value: null, multiplier: 1 };
+
+    function buildDartNumberGrid() {
+      const grid = $('dart-number-grid');
+      grid.innerHTML = '';
+      [20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1].forEach(value => {
+        const btn = document.createElement('button');
+        btn.className = 'number-btn';
+        btn.type = 'button';
+        btn.dataset.value = value;
+        btn.textContent = value;
+        btn.addEventListener('click', () => {
+          throwSelection.value = Number(btn.dataset.value);
+          updateScorePreview();
+          commitThrow();
+        });
+        grid.appendChild(btn);
+      });
+      const bullBtn = document.createElement('button');
+      bullBtn.className = 'number-btn';
+      bullBtn.type = 'button';
+      bullBtn.dataset.value = 25;
+      bullBtn.textContent = 'Bull';
+      bullBtn.addEventListener('click', () => {
+        throwSelection.value = 25;
+        updateScorePreview();
+        commitThrow();
+      });
+      grid.appendChild(bullBtn);
+    }
+
+    function updateScorePreview() {
+      const input = $('score-input');
+      document.querySelectorAll('.number-btn').forEach(btn => {
+        btn.classList.toggle('selected', Number(btn.dataset.value) === throwSelection.value);
+      });
+      document.querySelectorAll('.modifier-btn').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.multiplier) === throwSelection.multiplier);
+      });
+      if (throwSelection.value === null) {
+        input.value = '';
+        return;
+      }
+      input.value = throwSelection.value * throwSelection.multiplier;
+    }
+
+    function updateTurnInfo() {
+      const info = $('turn-info');
+      if (!state.players.length) {
+        info.textContent = 'Wurf 1 von 3';
+        return;
+      }
+      info.textContent = `${state.players[state.currentPlayer].name} · Wurf ${state.turnThrowIndex + 1} von 3`;
+    }
+
+    function resetThrowSelection() {
+      throwSelection.value = null;
+      throwSelection.multiplier = 1;
+      updateScorePreview();
+    }
+
+    async function commitThrow() {
+      if (state.gameOver) return;
+      const input = $('score-input');
+      let score = parseInt(input.value, 10);
+      if (isNaN(score) || score < 0 || score > 180) {
+        showToast('Ungültige Punktzahl (0–180)', 'bust');
+        return;
+      }
+
+      const player = state.players[state.currentPlayer];
+      const previous = player.score;
+      const remaining = previous - score;
+
+      if (remaining < 0 || remaining === 1) {
+        showToast('BUST!', 'bust');
+        state.history.unshift({ player: player.name, score: 0, remaining: previous });
+        return;
+      }
+
+      player.score = remaining;
+      player.dartsThrown += 1;
+      state.turnThrows.push(score);
+      state.turnThrowIndex += 1;
+      state.throwHistory.unshift({
+        player: player.name,
+        score,
+        label: `Wurf ${state.turnThrowIndex}`,
+        remaining: player.score
+      });
+      updateTurnInfo();
+      resetThrowSelection();
+      renderPlayers();
+      renderHistory();
+      updateCheckoutHint();
+
+      if (player.score === 0) {
+        state.gameOver = true;
+        showToast(`${player.name} gewinnt! 🏆`, 'success');
+        input.value = '';
+
+        // Großer Name
+        $('winner-name').textContent = player.name;
+        $('overlay-winner').classList.add('show');
+
+        // LED grün blinken (~5 Sek), dann Steckdose + LED aus
+        try {
+          await tuyaBlinkLedGreen(5000, 450);
+          await tuyaTurnSocketOff();
+        } catch (err) {
+          console.error(err);
+          showToast('Geräte konnten nicht ausgeschaltet werden', 'bust');
+          try { await tuyaTurnSocketOff(); } catch (_) {}
+          try { await tuyaTurnLedOff(); } catch (_) {}
+        }
+
+        $('overlay-winner').classList.remove('show');
+        resetToStartScreen();
+        return;
+      }
+
+      if (state.turnThrowIndex >= 3) {
+        const nextPlayerName = state.players[(state.currentPlayer + 1) % state.playerCount].name;
+        state.currentPlayer = (state.currentPlayer + 1) % state.playerCount;
+        if (state.currentPlayer === 0) state.round += 1;
+        state.turnThrows = [];
+        state.turnThrowIndex = 0;
+        renderPlayers();
+        renderHistory();
+        updateCheckoutHint();
+        updateTurnInfo();
+        showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
+        input.value = '';
+        input.focus();
+        return;
+      }
+
+      showToast(`Wurf ${state.turnThrowIndex} gespeichert`, 'success');
+      input.focus();
+    }
+
+    buildDartNumberGrid();
+    updateScorePreview();
+
+    document.querySelectorAll('.modifier-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const multiplier = Number(btn.dataset.multiplier);
+        if (multiplier === 0) {
+          throwSelection.value = 0;
+          throwSelection.multiplier = 1;
+        } else {
+          throwSelection.multiplier = multiplier;
+        }
+        updateScorePreview();
+        if (throwSelection.value !== null) commitThrow();
+      });
+    });
+
+    $('btn-submit').addEventListener('click', () => commitThrow());
+    $('score-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') commitThrow();
+    });
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        throwSelection.value = Number(btn.dataset.score);
+        throwSelection.multiplier = 1;
+        $('score-input').value = btn.dataset.score;
+        updateScorePreview();
+        commitThrow();
+      });
+    });
+  </script>
+</body>
+</html>
