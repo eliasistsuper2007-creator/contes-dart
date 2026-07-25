@@ -53,7 +53,7 @@
       flex: 1;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1.2rem;
-      padding: 1.5rem 2rem 2rem;
+      padding: 1.2rem 2rem 0.5rem;
       align-content: center;
     }
     .screen.live .grid { display: grid; }
@@ -116,7 +116,37 @@
       color: #00ff88;
     }
 
-    /* Großer Gewinner-Overlay (wie auf dem Tablet) */
+    /* Checkout-Leiste unten */
+    .checkout-bar {
+      display: none;
+      margin: 0.5rem 2rem 1.5rem;
+      padding: 1rem 1.4rem;
+      border-radius: 16px;
+      background: rgba(0, 255, 136, 0.08);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      text-align: center;
+    }
+    .screen.live .checkout-bar.visible { display: block; }
+    .checkout-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+      letter-spacing: 0.15em;
+      color: #8a8aa0;
+      margin-bottom: 0.35rem;
+    }
+    .checkout-text {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+      letter-spacing: 0.06em;
+      color: #00ff88;
+    }
+    .checkout-player {
+      margin-top: 0.35rem;
+      font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+      color: #00f0ff;
+    }
+
     .winner-overlay {
       position: absolute;
       inset: 0;
@@ -182,6 +212,12 @@
 
     <div class="grid" id="grid"></div>
 
+    <div class="checkout-bar" id="checkout-bar">
+      <div class="checkout-label">CHECKOUT</div>
+      <div class="checkout-text" id="checkout-text">—</div>
+      <div class="checkout-player" id="checkout-player"></div>
+    </div>
+
     <div class="winner-overlay" id="winner-overlay">
       <div class="winner-card">
         <div class="winner-label">GEWINNER</div>
@@ -192,6 +228,26 @@
   </div>
 
   <script>
+    const commonCheckouts = {
+      170: 'T20 T20 Bull', 167: 'T20 T19 Bull', 164: 'T20 T18 Bull', 161: 'T20 T17 Bull',
+      160: 'T20 T20 D20', 158: 'T20 T20 D19', 157: 'T20 T19 D20', 156: 'T20 T20 D18',
+      155: 'T20 T19 D19', 154: 'T20 T18 D20', 152: 'T20 T20 D16', 151: 'T20 T17 D20',
+      150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20', 147: 'T20 T17 D18',
+      146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12', 143: 'T20 T17 D16',
+      142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10', 136: 'T20 T20 D8',
+      132: 'T20 T16 D12', 130: 'T20 T20 D5', 120: 'T20 20 D20', 110: 'T20 10 D20',
+      100: 'T20 D20', 98: 'T20 D19', 96: 'T20 D18', 80: 'T20 D10', 60: '20 D20',
+      50: 'Bull', 40: 'D20', 36: 'D18', 32: 'D16', 24: 'D12', 20: 'D10',
+      16: 'D8', 12: 'D6', 10: 'D5', 8: 'D4', 6: 'D3', 4: 'D2', 2: 'D1'
+    };
+
+    function getCheckout(score) {
+      if (!score || score > 170 || score === 0) return null;
+      if (commonCheckouts[score]) return commonCheckouts[score];
+      if (score <= 40 && score % 2 === 0) return 'D' + (score / 2);
+      return null;
+    }
+
     async function loadState() {
       try {
         const res = await fetch('/api/state');
@@ -208,23 +264,38 @@
       const meta = document.getElementById('meta');
       const overlay = document.getElementById('winner-overlay');
       const winnerName = document.getElementById('winner-name');
+      const checkoutBar = document.getElementById('checkout-bar');
+      const checkoutText = document.getElementById('checkout-text');
+      const checkoutPlayer = document.getElementById('checkout-player');
 
       if (!data.active || !data.players || data.players.length === 0) {
         screen.className = 'screen idle';
         grid.innerHTML = '';
         overlay.classList.remove('show');
+        checkoutBar.classList.remove('visible');
         return;
       }
 
       screen.className = 'screen live';
       meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>`;
 
-      // Großer Gewinner-Name wie auf dem Tablet
       if (data.gameOver && data.winner) {
         winnerName.textContent = data.winner;
         overlay.classList.add('show');
+        checkoutBar.classList.remove('visible');
       } else {
         overlay.classList.remove('show');
+
+        // Checkout für aktuellen Spieler
+        const current = data.players[data.currentPlayer];
+        const hint = current ? getCheckout(current.score) : null;
+        if (hint && current) {
+          checkoutText.textContent = hint;
+          checkoutPlayer.textContent = current.name + ' · ' + current.score + ' Rest';
+          checkoutBar.classList.add('visible');
+        } else {
+          checkoutBar.classList.remove('visible');
+        }
       }
 
       grid.innerHTML = data.players.map((p, idx) => {
