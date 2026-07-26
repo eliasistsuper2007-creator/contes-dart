@@ -84,6 +84,7 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 0.4rem;
+      text-shadow: 0 0 40px rgba(0,240,255,0.4);
     }
     .subtitle {
       color: var(--muted);
@@ -110,11 +111,15 @@
       cursor: pointer;
       overflow: hidden;
       transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 0 30px rgba(0,240,255,0.5), 0 8px 20px rgba(0,0,0,0.4);
+      box-shadow:
+        0 0 30px rgba(0,240,255,0.5),
+        0 8px 20px rgba(0,0,0,0.4);
     }
     .btn-start:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 50px rgba(0,240,255,0.7), 0 12px 28px rgba(0,0,0,0.5);
+      box-shadow:
+        0 0 50px rgba(0,240,255,0.7),
+        0 12px 28px rgba(0,0,0,0.5);
     }
     .btn-start:active { transform: scale(0.97); }
     .btn-start::after {
@@ -145,7 +150,7 @@
       border-radius: 50%;
       background: #333;
       box-shadow: inset 0 0 4px #000;
-      transition: all 0.15s ease;
+      transition: all 0.4s ease;
     }
     .led-dot.off { background: #333; }
     .led-dot.on-red {
@@ -156,10 +161,12 @@
       background: var(--neon-green);
       box-shadow: 0 0 14px var(--neon-green), 0 0 28px rgba(0,255,136,0.5);
     }
-    .led-dot.pulse { animation: pulse 0.5s ease-in-out infinite; }
+    .led-dot.pulse {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.35; transform: scale(1.2); }
+      50% { opacity: 0.6; transform: scale(1.15); }
     }
 
     .section-title {
@@ -170,7 +177,11 @@
       color: var(--neon-cyan);
     }
 
-    .option-grid { display: grid; gap: 0.7rem; margin-bottom: 1.5rem; }
+    .option-grid {
+      display: grid;
+      gap: 0.7rem;
+      margin-bottom: 1.5rem;
+    }
     .option-btn {
       padding: 0.95rem 1.2rem;
       background: var(--glass);
@@ -215,7 +226,11 @@
       transform: translateY(-2px);
       box-shadow: 0 0 35px rgba(0,255,136,0.5);
     }
-    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
 
     .btn-back {
       margin-top: 0.9rem;
@@ -301,6 +316,7 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 1.1rem;
+      position: relative;
       transition: all 0.3s;
     }
     .player-card.active {
@@ -327,7 +343,11 @@
     }
     .player-card.active .player-score { color: var(--neon-cyan); }
     .player-card.winner .player-score { color: var(--neon-green); }
-    .player-meta { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+    .player-meta {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
 
     .input-section {
       background: var(--panel);
@@ -427,7 +447,10 @@
       font-weight: 600;
       transition: all 0.2s;
     }
-    .modifier-btn:hover { border-color: var(--neon-magenta); color: var(--neon-magenta); }
+    .modifier-btn:hover {
+      border-color: var(--neon-magenta);
+      color: var(--neon-magenta);
+    }
     .modifier-btn.active {
       border-color: var(--neon-cyan);
       background: rgba(0,240,255,0.14);
@@ -452,7 +475,10 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .number-btn:hover { border-color: var(--neon-cyan); transform: translateY(-1px); }
+    .number-btn:hover {
+      border-color: var(--neon-cyan);
+      transform: translateY(-1px);
+    }
     .number-btn.selected {
       border-color: var(--neon-cyan);
       background: rgba(0,240,255,0.16);
@@ -477,7 +503,10 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .quick-btn:hover { border-color: var(--neon-magenta); color: var(--neon-magenta); }
+    .quick-btn:hover {
+      border-color: var(--neon-magenta);
+      color: var(--neon-magenta);
+    }
 
     .checkout-hint {
       margin-top: 1rem;
@@ -524,7 +553,11 @@
       gap: 0.5rem;
     }
     .history-item .left { flex: 1; }
-    .history-item .right { display: flex; align-items: center; gap: 0.45rem; }
+    .history-item .right {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
     .history-btn {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.04);
@@ -534,7 +567,10 @@
       cursor: pointer;
       font-size: 0.8rem;
     }
-    .history-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+    .history-btn:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
     .history-item:last-child { border-bottom: none; }
     .history-score { color: var(--neon-cyan); font-weight: 600; }
 
@@ -577,8 +613,13 @@
       border: 1px solid var(--border);
       backdrop-filter: blur(8px);
     }
-    .smart-indicator .row { display: flex; align-items: center; gap: 0.4rem; }
+    .smart-indicator .row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
 
+    /* Winner Overlay */
     .winner-overlay {
       position: fixed;
       inset: 0;
@@ -586,22 +627,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
-      background: rgba(5,5,12,0.9);
+      background: rgba(5,5,12,0.88);
       backdrop-filter: blur(16px);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease, visibility 0.4s;
     }
-    .winner-overlay.show { opacity: 1; visibility: visible; }
+    .winner-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
     .winner-card {
-      min-width: min(92vw, 760px);
       text-align: center;
-      padding: 2.8rem 2.4rem;
-      border-radius: 28px;
-      background: rgba(18,18,28,0.95);
-      border: 1px solid rgba(0,255,136,0.35);
-      box-shadow: 0 0 0 1px rgba(0,255,136,0.15), 0 24px 80px rgba(0,0,0,0.55);
+      padding: 2.5rem 2rem;
       animation: winnerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     @keyframes winnerPop {
@@ -610,32 +648,58 @@
     }
     .winner-label {
       font-family: 'Orbitron', sans-serif;
-      font-size: 1.05rem;
-      letter-spacing: 0.28em;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
       color: var(--neon-green);
-      margin-bottom: 0.9rem;
-      text-transform: uppercase;
+      margin-bottom: 0.8rem;
     }
     .winner-name {
       font-family: 'Orbitron', sans-serif;
       font-weight: 900;
-      font-size: clamp(3.2rem, 14vw, 7.4rem);
+      font-size: clamp(2.5rem, 12vw, 5rem);
       letter-spacing: 0.08em;
-      line-height: 1.05;
       background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: winnerGlow 0.6s ease-in-out infinite alternate;
+      background-clip: text;
+      animation: winnerGlow 1.2s ease-in-out infinite alternate;
     }
     @keyframes winnerGlow {
-      from { filter: drop-shadow(0 0 12px rgba(0,255,136,0.4)); }
-      to   { filter: drop-shadow(0 0 38px rgba(0,255,136,0.9)); }
+      from { filter: drop-shadow(0 0 10px rgba(0,255,136,0.4)); }
+      to   { filter: drop-shadow(0 0 30px rgba(0,255,136,0.9)); }
     }
     .winner-sub {
       margin-top: 1.2rem;
       color: var(--muted);
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       letter-spacing: 0.06em;
+    }
+    .winner-qr-box {
+      margin-top: 1.8rem;
+      padding: 1.2rem;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(0,255,136,0.25);
+      border-radius: 16px;
+      display: none;
+    }
+    .winner-qr-box.visible { display: block; }
+    .winner-qr-box img {
+      width: 160px;
+      height: 160px;
+      border-radius: 10px;
+      background: #0a0a12;
+    }
+    .winner-qr-label {
+      margin-top: 0.7rem;
+      font-size: 0.85rem;
+      color: var(--neon-green);
+      letter-spacing: 0.06em;
+    }
+    .winner-qr-link {
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      word-break: break-all;
     }
   </style>
 </head>
@@ -645,7 +709,9 @@
     <div class="overlay-card">
       <div class="logo">Contes Dart</div>
       <div class="subtitle">Smart Home Edition</div>
-      <button class="btn-start" id="btn-start"><span>▶ START</span></button>
+      <button class="btn-start" id="btn-start">
+        <span>▶ START</span>
+      </button>
       <div class="led-status">
         <div class="led-dot off" id="led-start"></div>
         <span id="led-start-text">LED bereit…</span>
@@ -664,8 +730,14 @@
       <button class="btn-primary" id="btn-mode-next" disabled>WEITER</button>
       <button class="btn-back" id="btn-mode-back">← Zurück</button>
       <div class="device-panel">
-        <div class="device-row"><span>💡 LED</span><span class="status-badge on">AN (Rot)</span></div>
-        <div class="device-row"><span>🔌 Steckdose</span><span class="status-badge off">AUS</span></div>
+        <div class="device-row">
+          <span>💡 LED</span>
+          <span class="status-badge on">AN (Rot)</span>
+        </div>
+        <div class="device-row">
+          <span>🔌 Steckdose</span>
+          <span class="status-badge off">AUS</span>
+        </div>
       </div>
     </div>
   </div>
@@ -683,8 +755,14 @@
       <button class="btn-primary" id="btn-players-next" disabled>SPIEL STARTEN</button>
       <button class="btn-back" id="btn-players-back">← Zurück</button>
       <div class="device-panel">
-        <div class="device-row"><span>💡 LED</span><span class="status-badge on">AN (Rot)</span></div>
-        <div class="device-row"><span>🔌 Steckdose</span><span class="status-badge off">AUS</span></div>
+        <div class="device-row">
+          <span>💡 LED</span>
+          <span class="status-badge on">AN (Rot)</span>
+        </div>
+        <div class="device-row">
+          <span>🔌 Steckdose</span>
+          <span class="status-badge off">AUS</span>
+        </div>
       </div>
     </div>
   </div>
@@ -698,8 +776,14 @@
         <span id="led-activate-text">LED → Grün in Kürze</span>
       </div>
       <div class="device-panel" style="margin-top:1.8rem;">
-        <div class="device-row"><span>💡 LED</span><span class="status-badge on" id="status-led-act">AN (Rot)</span></div>
-        <div class="device-row"><span>🔌 Steckdose</span><span class="status-badge pending" id="status-socket-act">SCHALTE EIN…</span></div>
+        <div class="device-row">
+          <span>💡 LED</span>
+          <span class="status-badge on" id="status-led-act">AN (Rot)</span>
+        </div>
+        <div class="device-row">
+          <span>🔌 Steckdose</span>
+          <span class="status-badge pending" id="status-socket-act">SCHALTE EIN…</span>
+        </div>
       </div>
     </div>
   </div>
@@ -708,7 +792,12 @@
     <div class="winner-card">
       <div class="winner-label">GEWINNER</div>
       <div class="winner-name" id="winner-name">—</div>
-      <div class="winner-sub">LED blinkt grün… Geräte schalten in 10 Sek. aus</div>
+      <div class="winner-sub" id="winner-sub">LED blinkt grün… Geräte schalten in 10 Sek. aus</div>
+      <div class="winner-qr-box" id="winner-qr-box">
+        <img id="winner-qr-img" alt="QR Code PDF" />
+        <div class="winner-qr-label">Spielübersicht als PDF scannen<br>(gültig 5 Minuten)</div>
+        <div class="winner-qr-link" id="winner-qr-link"></div>
+      </div>
     </div>
   </div>
 
@@ -717,6 +806,7 @@
       <div class="row"><span class="led-dot on-green" style="width:10px;height:10px;"></span> LED Grün</div>
       <div class="row">🔌 Steckdose AN</div>
     </div>
+
     <div class="game-header">
       <div class="game-title">DART ARENA</div>
       <div class="header-info">
@@ -724,7 +814,9 @@
         <div>Runde: <span id="info-round">1</span></div>
       </div>
     </div>
+
     <div class="players-grid" id="players-grid"></div>
+
     <div class="input-section">
       <div class="input-label">WURF-AUSWAHL (Single / Double / Triple)</div>
       <div class="turn-info" id="turn-info">Wurf 1 von 3</div>
@@ -732,18 +824,22 @@
         <input type="number" id="score-input" min="0" max="180" placeholder="0" inputmode="numeric" readonly />
         <button class="btn-submit" id="btn-submit">WURF ÜBERNEHMEN</button>
       </div>
+
       <div class="modifier-row">
         <button class="modifier-btn active" data-multiplier="1">Single</button>
         <button class="modifier-btn" data-multiplier="2">Double</button>
         <button class="modifier-btn" data-multiplier="3">Triple</button>
         <button class="modifier-btn" data-multiplier="0">Miss</button>
       </div>
+
       <div class="dart-number-grid" id="dart-number-grid"></div>
+
       <div class="quick-scores">
         <button class="quick-btn" data-score="180">180</button>
         <button class="quick-btn" data-score="140">140</button>
         <button class="quick-btn" data-score="100">100</button>
         <button class="quick-btn" data-score="60">60</button>
+        <button class="quick-btn" data-score="50">50</button>
         <button class="quick-btn" data-score="40">40</button>
         <button class="quick-btn" data-score="26">26</button>
         <button class="quick-btn" data-score="20">20</button>
@@ -751,6 +847,7 @@
       </div>
       <div class="checkout-hint" id="checkout-hint"></div>
     </div>
+
     <div class="history-section">
       <div class="history-title">LETZTE WÜRFE</div>
       <div id="round-summary" class="round-summary">Noch keine Würfe in dieser Runde</div>
@@ -778,6 +875,30 @@
       socketOn: false
     };
 
+    async function syncGameState() {
+      try {
+        await fetch('/api/state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            active: state.players.length > 0 && !state.gameOver,
+            mode: state.mode,
+            round: state.round,
+            currentPlayer: state.currentPlayer,
+            gameOver: state.gameOver,
+            winner: state.winner,
+            players: state.players.map(p => ({
+              name: p.name,
+              score: p.score,
+              dartsThrown: p.dartsThrown
+            }))
+          })
+        });
+      } catch (e) {
+        console.error('State sync failed:', e);
+      }
+    }
+
     const $ = id => document.getElementById(id);
     const overlays = {
       start: $('overlay-start'),
@@ -785,7 +906,6 @@
       players: $('overlay-players'),
       activate: $('overlay-activate')
     };
-    let stateSyncQueue = Promise.resolve();
 
     async function tuyaAction(action) {
       const res = await fetch('/command', {
@@ -867,42 +987,12 @@
       }
     }
 
-    async function pushGameState(extra = {}) {
-      const runSync = async () => {
-        try {
-          const reset = !!extra.reset;
-          await fetch('/api/state', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              active: reset ? false : (!!state.players.length && state.mode != null),
-              mode: reset ? null : state.mode,
-              round: reset ? 1 : state.round,
-              currentPlayer: reset ? 0 : state.currentPlayer,
-              gameOver: reset ? false : state.gameOver,
-              winner: reset ? null : (extra.winner ?? state.winner ?? null),
-              players: reset ? [] : state.players.map(p => ({
-                name: p.name,
-                score: p.score,
-                dartsThrown: p.dartsThrown
-              }))
-            })
-          });
-        } catch (e) {
-          console.error('State sync:', e);
-        }
-      };
-
-      stateSyncQueue = stateSyncQueue.then(runSync, runSync);
-      return stateSyncQueue;
-    }
-
     function updateLedVisuals() {
       document.querySelectorAll('.led-dot').forEach(d => {
         d.classList.remove('off', 'on-red', 'on-green', 'pulse');
         if (!state.ledOn) d.classList.add('off');
         else if (state.ledColor === 'red') d.classList.add('on-red');
-        else if (state.ledColor === 'green') d.classList.add('on-green', 'pulse');
+        else if (state.ledColor === 'green') d.classList.add('on-green');
       });
     }
 
@@ -919,6 +1009,7 @@
       const btn = $('btn-start');
       btn.disabled = true;
       btn.innerHTML = '<span>…</span>';
+
       try {
         await tuyaTurnLedOn('red');
         $('led-start').className = 'led-dot on-red pulse';
@@ -926,9 +1017,10 @@
       } catch (err) {
         console.error(err);
         $('led-start').className = 'led-dot on-red pulse';
-        $('led-start-text').textContent = 'LED – Server prüfen';
+        $('led-start-text').textContent = 'LED (lokal) – Server prüfen';
         showToast('LED konnte nicht geschaltet werden', 'bust');
       }
+
       await delay(900);
       overlays.start.classList.add('hidden');
       overlays.mode.classList.remove('hidden');
@@ -958,7 +1050,10 @@
     let selectedPlayers = null;
     function renderPlayerNameInputs() {
       const container = $('player-name-inputs');
-      if (!selectedPlayers) { container.innerHTML = ''; return; }
+      if (!selectedPlayers) {
+        container.innerHTML = '';
+        return;
+      }
       container.innerHTML = '';
       for (let i = 0; i < selectedPlayers; i++) {
         const label = document.createElement('label');
@@ -1013,7 +1108,7 @@
 
       await delay(700);
       try { await tuyaSetLedGreen(); } catch (err) { console.error(err); }
-      $('led-activate').className = 'led-dot on-green pulse';
+      $('led-activate').className = 'led-dot on-green';
       $('led-activate-text').textContent = 'LED Grün – Bereit!';
       $('status-led-act').textContent = 'AN (Grün)';
       $('status-led-act').className = 'status-badge on';
@@ -1034,6 +1129,7 @@
       state.round = 1;
       state.history = [];
       state.gameOver = false;
+      state.winner = null;
       state.turnThrows = [];
       state.turnThrowIndex = 0;
       state.throwHistory = [];
@@ -1042,16 +1138,18 @@
       updateCheckoutHint();
       updateTurnInfo();
       $('score-input').focus();
-      await pushGameState();
+      await syncGameState();
     }
 
-    async function resetToStartScreen() {
+    function resetToStartScreen() {
       overlays.activate.classList.add('hidden');
       overlays.mode.classList.add('hidden');
       overlays.players.classList.add('hidden');
       overlays.start.classList.remove('hidden');
       $('game-screen').classList.remove('active');
       $('overlay-winner').classList.remove('show');
+      const qrBox = $('winner-qr-box');
+      if (qrBox) qrBox.classList.remove('visible');
 
       state.mode = null;
       state.playerCount = null;
@@ -1078,7 +1176,6 @@
       $('player-name-inputs').innerHTML = '';
       selectedMode = null;
       selectedPlayers = null;
-      await pushGameState({ reset: true });
     }
 
     function renderPlayers() {
@@ -1138,7 +1235,6 @@
           renderHistory();
           updateCheckoutHint();
           updateTurnInfo();
-          pushGameState();
           showToast('Wurf korrigiert', 'success');
         });
       });
@@ -1147,14 +1243,45 @@
     const commonCheckouts = {
       170: 'T20 T20 Bull', 167: 'T20 T19 Bull', 164: 'T20 T18 Bull', 161: 'T20 T17 Bull',
       160: 'T20 T20 D20', 158: 'T20 T20 D19', 157: 'T20 T19 D20', 156: 'T20 T20 D18',
-      155: 'T20 T19 D19', 154: 'T20 T18 D20', 152: 'T20 T20 D16', 151: 'T20 T17 D20',
-      150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20', 147: 'T20 T17 D18',
-      146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12', 143: 'T20 T17 D16',
-      142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10', 136: 'T20 T20 D8',
-      132: 'T20 T16 D12', 130: 'T20 T20 D5', 120: 'T20 20 D20', 110: 'T20 10 D20',
-      100: 'T20 D20', 98: 'T20 D19', 96: 'T20 D18', 80: 'T20 D10', 60: '20 D20',
-      50: 'Bull / 10 D20', 40: 'D20', 36: 'D18', 32: 'D16', 24: 'D12', 20: 'D10',
-      16: 'D8', 8: 'D4', 4: 'D2', 2: 'D1'
+      155: 'T20 T19 D19', 154: 'T20 T18 D20', 153: 'T20 T19 D18', 152: 'T20 T20 D16',
+      151: 'T20 T17 D20', 150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20',
+      147: 'T20 T17 D18', 146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12',
+      143: 'T20 T17 D16', 142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10',
+      139: 'T20 T13 D20', 138: 'T20 T18 D12', 137: 'T20 T19 D10', 136: 'T20 T20 D8',
+      135: 'T20 T17 D12', 134: 'T20 T14 D16', 133: 'T20 T19 D8', 132: 'T20 T16 D12',
+      131: 'T20 T13 D16', 130: 'T20 T20 D5', 129: 'T19 T16 D20', 128: 'T18 T14 D20',
+      127: 'T20 T17 D8', 126: 'T19 T19 D6', 125: 'T20 T19 D4', 124: 'T20 T16 D8',
+      123: 'T19 T16 D18', 122: 'T18 T18 D7', 121: 'T20 T11 D14', 120: 'T20 20 D20',
+      119: 'T19 T12 D20', 118: 'T20 18 D20', 117: 'T20 17 D20', 116: 'T20 16 D20',
+      115: 'T20 15 D20', 114: 'T20 14 D20', 113: 'T20 13 D20', 112: 'T20 12 D20',
+      111: 'T20 11 D20', 110: 'T20 10 D20', 109: 'T20 9 D20', 108: 'T20 8 D20',
+      107: 'T19 10 D20', 106: 'T20 6 D20', 105: 'T20 5 D20', 104: 'T20 4 D20',
+      103: 'T19 6 D20', 102: 'T20 10 D16', 101: 'T17 10 D20', 100: 'T20 D20',
+      99: 'T19 10 D16', 98: 'T20 D19', 97: 'T19 D20', 96: 'T20 D18',
+      95: 'T19 D19', 94: 'T18 D20', 93: 'T19 D18', 92: 'T20 D16',
+      91: 'T17 D20', 90: 'T20 D15', 89: 'T19 D16', 88: 'T20 D14',
+      87: 'T17 D18', 86: 'T18 D16', 85: 'T15 D20', 84: 'T20 D12',
+      83: 'T17 D16', 82: 'T14 D20', 81: 'T19 D12', 80: 'T20 D10',
+      79: 'T13 D20', 78: 'T18 D12', 77: 'T19 D10', 76: 'T20 D8',
+      75: 'T17 D12', 74: 'T14 D16', 73: 'T19 D8', 72: 'T16 D12',
+      71: 'T13 D16', 70: 'T10 D20', 69: 'T19 D6', 68: 'T20 D4',
+      67: 'T17 D8', 66: 'T10 D18', 65: 'T19 D4', 64: 'T16 D8',
+      63: 'T13 D12', 62: 'T10 D16', 61: 'T15 D8', 60: '20 D20',
+      59: '19 D20', 58: '18 D20', 57: '17 D20', 56: '16 D20',
+      55: '15 D20', 54: '14 D20', 53: '13 D20', 52: '12 D20',
+      51: '11 D20', 50: 'Bull', 49: '9 D20', 48: '16 D16',
+      47: '15 D16', 46: '14 D16', 45: '13 D16', 44: '12 D16',
+      43: '11 D16', 42: '10 D16', 41: '9 D16', 40: 'D20',
+      39: '7 D16', 38: 'D19', 37: '5 D16', 36: 'D18',
+      35: '3 D16', 34: 'D17', 33: '1 D16', 32: 'D16',
+      31: '15 D8', 30: 'D15', 29: '13 D8', 28: 'D14',
+      27: '11 D8', 26: 'D13', 25: '9 D8', 24: 'D12',
+      23: '7 D8', 22: 'D11', 21: '5 D8', 20: 'D10',
+      19: '3 D8', 18: 'D9', 17: '1 D8', 16: 'D8',
+      15: '7 D4', 14: 'D7', 13: '5 D4', 12: 'D6',
+      11: '3 D4', 10: 'D5', 9: '1 D4', 8: 'D4',
+      7: '3 D2', 6: 'D3', 5: '1 D2', 4: 'D2',
+      3: '1 D1', 2: 'D1'
     };
 
     function updateCheckoutHint() {
@@ -1187,10 +1314,10 @@
         btn.type = 'button';
         btn.dataset.value = value;
         btn.textContent = value;
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           throwSelection.value = Number(btn.dataset.value);
           updateScorePreview();
-          commitThrow();
+          await commitThrow();
         });
         grid.appendChild(btn);
       });
@@ -1198,30 +1325,53 @@
       bullBtn.className = 'number-btn';
       bullBtn.type = 'button';
       bullBtn.dataset.value = 25;
+      bullBtn.dataset.multiplier = 1;
       bullBtn.textContent = 'Bull';
-      bullBtn.addEventListener('click', () => {
+      bullBtn.addEventListener('click', async () => {
         throwSelection.value = 25;
+        throwSelection.multiplier = 1;
         updateScorePreview();
-        commitThrow();
+        await commitThrow();
       });
       grid.appendChild(bullBtn);
+      const dbullBtn = document.createElement('button');
+      dbullBtn.className = 'number-btn';
+      dbullBtn.type = 'button';
+      dbullBtn.dataset.value = 25;
+      dbullBtn.dataset.multiplier = 2;
+      dbullBtn.textContent = 'DBull';
+      dbullBtn.addEventListener('click', async () => {
+        throwSelection.value = 25;
+        throwSelection.multiplier = 2;
+        updateScorePreview();
+        await commitThrow();
+      });
+      grid.appendChild(dbullBtn);
     }
 
     function updateScorePreview() {
       const input = $('score-input');
       document.querySelectorAll('.number-btn').forEach(btn => {
-        btn.classList.toggle('selected', Number(btn.dataset.value) === throwSelection.value);
+        const value = Number(btn.dataset.value);
+        const multiplier = btn.dataset.multiplier ? Number(btn.dataset.multiplier) : 1;
+        btn.classList.toggle('selected', value === throwSelection.value && multiplier === throwSelection.multiplier);
       });
       document.querySelectorAll('.modifier-btn').forEach(btn => {
         btn.classList.toggle('active', Number(btn.dataset.multiplier) === throwSelection.multiplier);
       });
-      if (throwSelection.value === null) { input.value = ''; return; }
+      if (throwSelection.value === null) {
+        input.value = '';
+        return;
+      }
       input.value = throwSelection.value * throwSelection.multiplier;
     }
 
     function updateTurnInfo() {
       const info = $('turn-info');
-      if (!state.players.length) { info.textContent = 'Wurf 1 von 3'; return; }
+      if (!state.players.length) {
+        info.textContent = 'Wurf 1 von 3';
+        return;
+      }
       info.textContent = `${state.players[state.currentPlayer].name} · Wurf ${state.turnThrowIndex + 1} von 3`;
     }
 
@@ -1244,7 +1394,7 @@
       const previous = player.score;
       const remaining = previous - score;
 
-      if (remaining < 0 || remaining === 1) {
+      if (remaining < 0) {
         showToast('BUST!', 'bust');
         state.history.unshift({ player: player.name, score: 0, remaining: previous });
         return;
@@ -1265,19 +1415,76 @@
       renderPlayers();
       renderHistory();
       updateCheckoutHint();
-      await pushGameState();
+      await syncGameState();
 
       if (player.score === 0) {
         state.gameOver = true;
         state.winner = player.name;
-        showToast(`${player.name} gewinnt! 🏆`, 'success');
+        await syncGameState();
         input.value = '';
-        $('winner-name').textContent = player.name;
-        $('overlay-winner').classList.add('show');
-        pushGameState({ winner: state.winner });
 
+        // Winner Overlay + QR für PDF
+        $('winner-name').textContent = player.name;
+        $('winner-sub').textContent = 'Spielübersicht wird erstellt…';
+        $('winner-qr-box').classList.remove('visible');
+        $('overlay-winner').classList.add('show');
+
+        // PDF generieren und QR anzeigen
         try {
-          await tuyaBlinkLedGreen(10000, 250);
+          const summaryRes = await fetch('/api/summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mode: state.mode,
+              round: state.round,
+              winner: state.winner,
+              players: state.players.map(p => ({
+                name: p.name,
+                score: p.score,
+                dartsThrown: p.dartsThrown
+              })),
+              throwHistory: state.throwHistory.slice(0, 40)
+            })
+          });
+          if (summaryRes.ok) {
+            const summary = await summaryRes.json();
+            const qrImg = $('winner-qr-img');
+            const qrBox = $('winner-qr-box');
+            const qrLink = $('winner-qr-link');
+            qrImg.src = summary.qrUrl + '?t=' + Date.now();
+            qrLink.textContent = window.location.origin + summary.url;
+            qrBox.classList.add('visible');
+            $('winner-sub').textContent = 'PDF 5 Min. gültig · LED blinkt grün…';
+            // State mit summaryId aktualisieren (für Display falls gewünscht)
+            await fetch('/api/state', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                active: false,
+                mode: state.mode,
+                round: state.round,
+                currentPlayer: state.currentPlayer,
+                gameOver: true,
+                winner: state.winner,
+                players: state.players.map(p => ({
+                  name: p.name,
+                  score: p.score,
+                  dartsThrown: p.dartsThrown
+                })),
+                summaryId: summary.id
+              })
+            });
+          } else {
+            $('winner-sub').textContent = 'PDF konnte nicht erstellt werden · LED blinkt…';
+          }
+        } catch (err) {
+          console.error('Summary error:', err);
+          $('winner-sub').textContent = 'LED blinkt grün… Geräte schalten aus';
+        }
+
+        // LED grün blinken (~12 Sek, damit QR lesbar bleibt), dann Steckdose + LED aus
+        try {
+          await tuyaBlinkLedGreen(12000, 250);
           await tuyaTurnSocketOff();
         } catch (err) {
           console.error(err);
@@ -1286,9 +1493,10 @@
           try { await tuyaTurnLedOff(); } catch (_) {}
         }
 
-        await delay(4000);
         $('overlay-winner').classList.remove('show');
+        $('winner-qr-box').classList.remove('visible');
         resetToStartScreen();
+        await syncGameState();
         return;
       }
 
@@ -1302,7 +1510,6 @@
         renderHistory();
         updateCheckoutHint();
         updateTurnInfo();
-        await pushGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
         input.value = '';
         input.focus();
@@ -1315,10 +1522,9 @@
 
     buildDartNumberGrid();
     updateScorePreview();
-    pushGameState({ reset: true });
 
     document.querySelectorAll('.modifier-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const multiplier = Number(btn.dataset.multiplier);
         if (multiplier === 0) {
           throwSelection.value = 0;
@@ -1327,7 +1533,7 @@
           throwSelection.multiplier = multiplier;
         }
         updateScorePreview();
-        if (throwSelection.value !== null) commitThrow();
+        if (throwSelection.value !== null) await commitThrow();
       });
     });
 
