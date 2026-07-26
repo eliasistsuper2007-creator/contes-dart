@@ -256,11 +256,16 @@
       return null;
     }
 
+    let lastRenderedState = null;
+
     async function loadState() {
       try {
         const res = await fetch('/api/state');
         const data = await res.json();
-        render(data);
+        if (JSON.stringify(data) !== JSON.stringify(lastRenderedState)) {
+          lastRenderedState = data;
+          render(data);
+        }
       } catch (e) {
         console.error(e);
       }
@@ -344,7 +349,7 @@
     }
 
     loadState();
-    setInterval(loadState, 800);
+    setInterval(loadState, 400);
   </script>
 </body>
 </html>
