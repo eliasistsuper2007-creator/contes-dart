@@ -674,32 +674,52 @@
       font-size: 1.05rem;
       letter-spacing: 0.06em;
     }
-    .winner-qr-box {
-      margin-top: 1.8rem;
-      padding: 1.2rem;
-      background: rgba(0,0,0,0.45);
-      border: 1px solid rgba(0,255,136,0.25);
-      border-radius: 16px;
-      display: none;
+
+    /* Bust Overlay */
+    .bust-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 160;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20, 5, 5, 0.9);
+      backdrop-filter: blur(16px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s;
     }
-    .winner-qr-box.visible { display: block; }
-    .winner-qr-box img {
-      width: 160px;
-      height: 160px;
-      border-radius: 10px;
-      background: #0a0a12;
+    .bust-overlay.show {
+      opacity: 1;
+      visibility: visible;
     }
-    .winner-qr-label {
-      margin-top: 0.7rem;
-      font-size: 0.85rem;
-      color: var(--neon-green);
-      letter-spacing: 0.06em;
+    .bust-card {
+      text-align: center;
+      padding: 2rem;
+      animation: bustPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .winner-qr-link {
-      margin-top: 0.4rem;
-      font-size: 0.75rem;
+    @keyframes bustPop {
+      0% { transform: scale(0.35); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .bust-label {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(3.5rem, 16vw, 7rem);
+      letter-spacing: 0.12em;
+      color: var(--neon-orange);
+      text-shadow: 0 0 30px rgba(255, 107, 0, 0.7), 0 0 60px rgba(255, 107, 0, 0.4);
+      animation: bustPulse 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes bustPulse {
+      from { filter: drop-shadow(0 0 8px rgba(255,107,0,0.5)); }
+      to   { filter: drop-shadow(0 0 28px rgba(255,107,0,0.95)); }
+    }
+    .bust-sub {
+      margin-top: 1rem;
       color: var(--muted);
-      word-break: break-all;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      letter-spacing: 0.08em;
     }
   </style>
 </head>
@@ -792,12 +812,15 @@
     <div class="winner-card">
       <div class="winner-label">GEWINNER</div>
       <div class="winner-name" id="winner-name">—</div>
-      <div class="winner-sub" id="winner-sub">LED blinkt grün… Geräte schalten in 10 Sek. aus</div>
-      <div class="winner-qr-box" id="winner-qr-box">
-        <img id="winner-qr-img" alt="QR Code PDF" />
-        <div class="winner-qr-label">Spielübersicht als PDF scannen<br>(gültig 5 Minuten)</div>
-        <div class="winner-qr-link" id="winner-qr-link"></div>
-      </div>
+      <div class="winner-sub">LED blinkt grün… Geräte schalten in 10 Sek. aus</div>
+    </div>
+  </div>
+
+  
+  <div id="overlay-bust" class="bust-overlay">
+    <div class="bust-card">
+      <div class="bust-label">BUST</div>
+      <div class="bust-sub" id="bust-sub">Zug ungültig – Punktestand zurückgesetzt</div>
     </div>
   </div>
 
@@ -870,6 +893,9 @@
       turnThrows: [],
       turnThrowIndex: 0,
       throwHistory: [],
+      scoreAtTurnStart: 0,
+      bust: false,
+      bustPlayer: null,
       ledOn: false,
       ledColor: 'off',
       socketOn: false
@@ -887,6 +913,8 @@
             currentPlayer: state.currentPlayer,
             gameOver: state.gameOver,
             winner: state.winner,
+            bust: state.bust,
+            bustPlayer: state.bustPlayer,
             players: state.players.map(p => ({
               name: p.name,
               score: p.score,
@@ -945,6 +973,23 @@
       updateLedVisuals();
       await tuyaAction('led_green');
       return true;
+    }
+
+    
+    async function tuyaFlashLedRed(durationMs = 1000) {
+      try {
+        state.ledOn = true;
+        state.ledColor = 'red';
+        updateLedVisuals();
+        await tuyaAction('led_red');
+        await delay(durationMs);
+        state.ledColor = 'green';
+        updateLedVisuals();
+        await tuyaAction('led_green');
+      } catch (e) {
+        console.error('LED Flash Red Fehler:', e);
+        try { await tuyaSetLedGreen(); } catch (_) {}
+      }
     }
 
     async function tuyaTurnLedOff() {
@@ -1133,6 +1178,9 @@
       state.turnThrows = [];
       state.turnThrowIndex = 0;
       state.throwHistory = [];
+      state.bust = false;
+      state.bustPlayer = null;
+      state.scoreAtTurnStart = state.players[0]?.score ?? state.mode;
       $('info-mode').textContent = state.mode;
       renderPlayers();
       updateCheckoutHint();
@@ -1148,8 +1196,6 @@
       overlays.start.classList.remove('hidden');
       $('game-screen').classList.remove('active');
       $('overlay-winner').classList.remove('show');
-      const qrBox = $('winner-qr-box');
-      if (qrBox) qrBox.classList.remove('visible');
 
       state.mode = null;
       state.playerCount = null;
@@ -1161,9 +1207,15 @@
       state.turnThrows = [];
       state.turnThrowIndex = 0;
       state.throwHistory = [];
+      state.scoreAtTurnStart = 0;
+      state.bust = false;
+      state.bustPlayer = null;
       state.ledOn = false;
       state.ledColor = 'off';
       state.socketOn = false;
+
+      const bustEl = $('overlay-bust');
+      if (bustEl) bustEl.classList.remove('show');
 
       updateLedVisuals();
       $('btn-start').disabled = false;
@@ -1243,45 +1295,14 @@
     const commonCheckouts = {
       170: 'T20 T20 Bull', 167: 'T20 T19 Bull', 164: 'T20 T18 Bull', 161: 'T20 T17 Bull',
       160: 'T20 T20 D20', 158: 'T20 T20 D19', 157: 'T20 T19 D20', 156: 'T20 T20 D18',
-      155: 'T20 T19 D19', 154: 'T20 T18 D20', 153: 'T20 T19 D18', 152: 'T20 T20 D16',
-      151: 'T20 T17 D20', 150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20',
-      147: 'T20 T17 D18', 146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12',
-      143: 'T20 T17 D16', 142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10',
-      139: 'T20 T13 D20', 138: 'T20 T18 D12', 137: 'T20 T19 D10', 136: 'T20 T20 D8',
-      135: 'T20 T17 D12', 134: 'T20 T14 D16', 133: 'T20 T19 D8', 132: 'T20 T16 D12',
-      131: 'T20 T13 D16', 130: 'T20 T20 D5', 129: 'T19 T16 D20', 128: 'T18 T14 D20',
-      127: 'T20 T17 D8', 126: 'T19 T19 D6', 125: 'T20 T19 D4', 124: 'T20 T16 D8',
-      123: 'T19 T16 D18', 122: 'T18 T18 D7', 121: 'T20 T11 D14', 120: 'T20 20 D20',
-      119: 'T19 T12 D20', 118: 'T20 18 D20', 117: 'T20 17 D20', 116: 'T20 16 D20',
-      115: 'T20 15 D20', 114: 'T20 14 D20', 113: 'T20 13 D20', 112: 'T20 12 D20',
-      111: 'T20 11 D20', 110: 'T20 10 D20', 109: 'T20 9 D20', 108: 'T20 8 D20',
-      107: 'T19 10 D20', 106: 'T20 6 D20', 105: 'T20 5 D20', 104: 'T20 4 D20',
-      103: 'T19 6 D20', 102: 'T20 10 D16', 101: 'T17 10 D20', 100: 'T20 D20',
-      99: 'T19 10 D16', 98: 'T20 D19', 97: 'T19 D20', 96: 'T20 D18',
-      95: 'T19 D19', 94: 'T18 D20', 93: 'T19 D18', 92: 'T20 D16',
-      91: 'T17 D20', 90: 'T20 D15', 89: 'T19 D16', 88: 'T20 D14',
-      87: 'T17 D18', 86: 'T18 D16', 85: 'T15 D20', 84: 'T20 D12',
-      83: 'T17 D16', 82: 'T14 D20', 81: 'T19 D12', 80: 'T20 D10',
-      79: 'T13 D20', 78: 'T18 D12', 77: 'T19 D10', 76: 'T20 D8',
-      75: 'T17 D12', 74: 'T14 D16', 73: 'T19 D8', 72: 'T16 D12',
-      71: 'T13 D16', 70: 'T10 D20', 69: 'T19 D6', 68: 'T20 D4',
-      67: 'T17 D8', 66: 'T10 D18', 65: 'T19 D4', 64: 'T16 D8',
-      63: 'T13 D12', 62: 'T10 D16', 61: 'T15 D8', 60: '20 D20',
-      59: '19 D20', 58: '18 D20', 57: '17 D20', 56: '16 D20',
-      55: '15 D20', 54: '14 D20', 53: '13 D20', 52: '12 D20',
-      51: '11 D20', 50: 'Bull', 49: '9 D20', 48: '16 D16',
-      47: '15 D16', 46: '14 D16', 45: '13 D16', 44: '12 D16',
-      43: '11 D16', 42: '10 D16', 41: '9 D16', 40: 'D20',
-      39: '7 D16', 38: 'D19', 37: '5 D16', 36: 'D18',
-      35: '3 D16', 34: 'D17', 33: '1 D16', 32: 'D16',
-      31: '15 D8', 30: 'D15', 29: '13 D8', 28: 'D14',
-      27: '11 D8', 26: 'D13', 25: '9 D8', 24: 'D12',
-      23: '7 D8', 22: 'D11', 21: '5 D8', 20: 'D10',
-      19: '3 D8', 18: 'D9', 17: '1 D8', 16: 'D8',
-      15: '7 D4', 14: 'D7', 13: '5 D4', 12: 'D6',
-      11: '3 D4', 10: 'D5', 9: '1 D4', 8: 'D4',
-      7: '3 D2', 6: 'D3', 5: '1 D2', 4: 'D2',
-      3: '1 D1', 2: 'D1'
+      155: 'T20 T19 D19', 154: 'T20 T18 D20', 152: 'T20 T20 D16', 151: 'T20 T17 D20',
+      150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20', 147: 'T20 T17 D18',
+      146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12', 143: 'T20 T17 D16',
+      142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10', 136: 'T20 T20 D8',
+      132: 'T20 T16 D12', 130: 'T20 T20 D5', 120: 'T20 20 D20', 110: 'T20 10 D20',
+      100: 'T20 D20', 98: 'T20 D19', 96: 'T20 D18', 80: 'T20 D10', 60: '20 D20',
+      50: 'Bull / 10 D20', 40: 'D20', 36: 'D18', 32: 'D16', 24: 'D12', 20: 'D10',
+      16: 'D8', 8: 'D4', 4: 'D2', 2: 'D1'
     };
 
     function updateCheckoutHint() {
@@ -1382,7 +1403,7 @@
     }
 
     async function commitThrow() {
-      if (state.gameOver) return;
+      if (state.gameOver || state.bust) return;
       const input = $('score-input');
       let score = parseInt(input.value, 10);
       if (isNaN(score) || score < 0 || score > 180) {
@@ -1394,9 +1415,54 @@
       const previous = player.score;
       const remaining = previous - score;
 
+      // ——— BUST: ganzer Zug ungültig, Score zurück auf Wert vor dem Zug ———
       if (remaining < 0) {
-        showToast('BUST!', 'bust');
-        state.history.unshift({ player: player.name, score: 0, remaining: previous });
+        const throwsThisTurn = state.turnThrows.length;
+        player.score = state.scoreAtTurnStart;
+        player.dartsThrown = Math.max(0, player.dartsThrown - throwsThisTurn);
+        if (throwsThisTurn > 0) {
+          state.throwHistory.splice(0, throwsThisTurn);
+        }
+        state.turnThrows = [];
+        state.turnThrowIndex = 0;
+        state.history.unshift({ player: player.name, score: 0, remaining: state.scoreAtTurnStart, bust: true });
+
+        state.bust = true;
+        state.bustPlayer = player.name;
+        $('bust-sub').textContent = `${player.name} · Punktestand zurück auf ${state.scoreAtTurnStart}`;
+        $('overlay-bust').classList.add('show');
+        showToast('BUST! Zug ungültig', 'bust');
+
+        resetThrowSelection();
+        input.value = '';
+        renderPlayers();
+        renderHistory();
+        updateCheckoutHint();
+        updateTurnInfo();
+        await syncGameState();
+
+        try {
+          await tuyaFlashLedRed(1000);
+        } catch (e) {
+          console.error(e);
+        }
+
+        await delay(400);
+        $('overlay-bust').classList.remove('show');
+        state.bust = false;
+        state.bustPlayer = null;
+
+        const nextPlayerName = state.players[(state.currentPlayer + 1) % state.playerCount].name;
+        state.currentPlayer = (state.currentPlayer + 1) % state.playerCount;
+        if (state.currentPlayer === 0) state.round += 1;
+        state.scoreAtTurnStart = state.players[state.currentPlayer].score;
+        renderPlayers();
+        renderHistory();
+        updateCheckoutHint();
+        updateTurnInfo();
+        await syncGameState();
+        showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
+        input.focus();
         return;
       }
 
@@ -1423,68 +1489,11 @@
         await syncGameState();
         input.value = '';
 
-        // Winner Overlay + QR für PDF
         $('winner-name').textContent = player.name;
-        $('winner-sub').textContent = 'Spielübersicht wird erstellt…';
-        $('winner-qr-box').classList.remove('visible');
         $('overlay-winner').classList.add('show');
 
-        // PDF generieren und QR anzeigen
         try {
-          const summaryRes = await fetch('/api/summary', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              mode: state.mode,
-              round: state.round,
-              winner: state.winner,
-              players: state.players.map(p => ({
-                name: p.name,
-                score: p.score,
-                dartsThrown: p.dartsThrown
-              })),
-              throwHistory: state.throwHistory.slice(0, 40)
-            })
-          });
-          if (summaryRes.ok) {
-            const summary = await summaryRes.json();
-            const qrImg = $('winner-qr-img');
-            const qrBox = $('winner-qr-box');
-            const qrLink = $('winner-qr-link');
-            qrImg.src = summary.qrUrl + '?t=' + Date.now();
-            qrLink.textContent = window.location.origin + summary.url;
-            qrBox.classList.add('visible');
-            $('winner-sub').textContent = 'PDF 5 Min. gültig · LED blinkt grün…';
-            // State mit summaryId aktualisieren (für Display falls gewünscht)
-            await fetch('/api/state', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                active: false,
-                mode: state.mode,
-                round: state.round,
-                currentPlayer: state.currentPlayer,
-                gameOver: true,
-                winner: state.winner,
-                players: state.players.map(p => ({
-                  name: p.name,
-                  score: p.score,
-                  dartsThrown: p.dartsThrown
-                })),
-                summaryId: summary.id
-              })
-            });
-          } else {
-            $('winner-sub').textContent = 'PDF konnte nicht erstellt werden · LED blinkt…';
-          }
-        } catch (err) {
-          console.error('Summary error:', err);
-          $('winner-sub').textContent = 'LED blinkt grün… Geräte schalten aus';
-        }
-
-        // LED grün blinken (~12 Sek, damit QR lesbar bleibt), dann Steckdose + LED aus
-        try {
-          await tuyaBlinkLedGreen(12000, 250);
+          await tuyaBlinkLedGreen(10000, 250);
           await tuyaTurnSocketOff();
         } catch (err) {
           console.error(err);
@@ -1494,19 +1503,18 @@
         }
 
         $('overlay-winner').classList.remove('show');
-        $('winner-qr-box').classList.remove('visible');
         resetToStartScreen();
         await syncGameState();
         return;
       }
 
       if (state.turnThrowIndex >= 3) {
-        const nextPlayerIndex = (state.currentPlayer + 1) % state.playerCount;
-        const nextPlayerName = state.players[nextPlayerIndex]?.name || state.players[state.currentPlayer]?.name || 'Nächster Spieler';
-        state.currentPlayer = nextPlayerIndex;
+        const nextPlayerName = state.players[(state.currentPlayer + 1) % state.playerCount].name;
+        state.currentPlayer = (state.currentPlayer + 1) % state.playerCount;
         if (state.currentPlayer === 0) state.round += 1;
         state.turnThrows = [];
         state.turnThrowIndex = 0;
+        state.scoreAtTurnStart = state.players[state.currentPlayer].score;
         renderPlayers();
         renderHistory();
         updateCheckoutHint();
