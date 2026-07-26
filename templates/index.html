@@ -1243,8 +1243,9 @@
       const player = state.players[state.currentPlayer];
       const previous = player.score;
       const remaining = previous - score;
+      const isBullAllowed = previous === 25 || previous === 26;
 
-      if (remaining < 0 || remaining === 1) {
+      if (remaining < 0 || (remaining === 1 && !isBullAllowed)) {
         showToast('BUST!', 'bust');
         state.history.unshift({ player: player.name, score: 0, remaining: previous });
         return;
