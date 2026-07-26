@@ -133,6 +133,12 @@ def command():
                 {"code": "work_mode", "value": "colour"},
                 {"code": "colour_data", "value": {"h": 120, "s": 1000, "v": 1000}}
             ])
+        elif action == "led_blue":
+            status, text = send_commands(token, LED_DEVICE_ID, [
+                {"code": "switch_led", "value": True},
+                {"code": "work_mode", "value": "colour"},
+                {"code": "colour_data", "value": {"h": 240, "s": 1000, "v": 1000}}
+            ])
         elif action == "led_off":
             status, text = send_commands(token, LED_DEVICE_ID, [
                 {"code": "switch_led", "value": False}
