@@ -156,6 +156,10 @@
       background: var(--neon-green);
       box-shadow: 0 0 14px var(--neon-green), 0 0 28px rgba(0,255,136,0.5);
     }
+    .led-dot.on-blue {
+      background: #4da3ff;
+      box-shadow: 0 0 14px #4da3ff, 0 0 28px rgba(77,163,255,0.55);
+    }
     .led-dot.pulse { animation: pulse 0.5s ease-in-out infinite; }
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
@@ -901,10 +905,11 @@
 
     function updateLedVisuals() {
       document.querySelectorAll('.led-dot').forEach(d => {
-        d.classList.remove('off', 'on-red', 'on-green', 'pulse');
+        d.classList.remove('off', 'on-red', 'on-green', 'on-blue', 'pulse');
         if (!state.ledOn) d.classList.add('off');
         else if (state.ledColor === 'red') d.classList.add('on-red');
         else if (state.ledColor === 'green') d.classList.add('on-green', 'pulse');
+        else if (state.ledColor === 'blue') d.classList.add('on-blue', 'pulse');
       });
     }
 
@@ -916,9 +921,9 @@
       try {
         for (let i = 0; i < 4; i++) {
           state.ledOn = true;
-          state.ledColor = 'green';
+          state.ledColor = 'blue';
           updateLedVisuals();
-          await tuyaAction('led_green');
+          await tuyaAction('led_blue');
           await delay(140);
 
           state.ledOn = false;
@@ -929,9 +934,9 @@
         }
 
         state.ledOn = true;
-        state.ledColor = 'green';
+        state.ledColor = 'blue';
         updateLedVisuals();
-        await tuyaAction('led_green');
+        await tuyaAction('led_blue');
       } catch (err) {
         console.error('Bull-Effekt:', err);
       }
