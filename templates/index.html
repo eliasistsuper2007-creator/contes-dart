@@ -785,6 +785,7 @@
       players: $('overlay-players'),
       activate: $('overlay-activate')
     };
+    let stateSyncQueue = Promise.resolve();
 
     async function tuyaAction(action) {
       const res = await fetch('/command', {
@@ -867,28 +868,33 @@
     }
 
     async function pushGameState(extra = {}) {
-      try {
-        const reset = !!extra.reset;
-        await fetch('/api/state', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            active: reset ? false : (!!state.players.length && state.mode != null),
-            mode: reset ? null : state.mode,
-            round: reset ? 1 : state.round,
-            currentPlayer: reset ? 0 : state.currentPlayer,
-            gameOver: reset ? false : state.gameOver,
-            winner: reset ? null : (extra.winner ?? state.winner ?? null),
-            players: reset ? [] : state.players.map(p => ({
-              name: p.name,
-              score: p.score,
-              dartsThrown: p.dartsThrown
-            }))
-          })
-        });
-      } catch (e) {
-        console.error('State sync:', e);
-      }
+      const runSync = async () => {
+        try {
+          const reset = !!extra.reset;
+          await fetch('/api/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              active: reset ? false : (!!state.players.length && state.mode != null),
+              mode: reset ? null : state.mode,
+              round: reset ? 1 : state.round,
+              currentPlayer: reset ? 0 : state.currentPlayer,
+              gameOver: reset ? false : state.gameOver,
+              winner: reset ? null : (extra.winner ?? state.winner ?? null),
+              players: reset ? [] : state.players.map(p => ({
+                name: p.name,
+                score: p.score,
+                dartsThrown: p.dartsThrown
+              }))
+            })
+          });
+        } catch (e) {
+          console.error('State sync:', e);
+        }
+      };
+
+      stateSyncQueue = stateSyncQueue.then(runSync, runSync);
+      return stateSyncQueue;
     }
 
     function updateLedVisuals() {
@@ -1021,7 +1027,7 @@
       overlays.mode.classList.remove('hidden');
     });
 
-    function startGame() {
+    async function startGame() {
       overlays.activate.classList.add('hidden');
       $('game-screen').classList.add('active');
       state.currentPlayer = 0;
@@ -1036,10 +1042,10 @@
       updateCheckoutHint();
       updateTurnInfo();
       $('score-input').focus();
-      pushGameState();
+      await pushGameState();
     }
 
-    function resetToStartScreen() {
+    async function resetToStartScreen() {
       overlays.activate.classList.add('hidden');
       overlays.mode.classList.add('hidden');
       overlays.players.classList.add('hidden');
@@ -1072,7 +1078,7 @@
       $('player-name-inputs').innerHTML = '';
       selectedMode = null;
       selectedPlayers = null;
-      pushGameState({ reset: true });
+      await pushGameState({ reset: true });
     }
 
     function renderPlayers() {
@@ -1259,7 +1265,7 @@
       renderPlayers();
       renderHistory();
       updateCheckoutHint();
-      pushGameState();
+      await pushGameState();
 
       if (player.score === 0) {
         state.gameOver = true;
@@ -1296,7 +1302,7 @@
         renderHistory();
         updateCheckoutHint();
         updateTurnInfo();
-        pushGameState();
+        await pushGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
         input.value = '';
         input.focus();
