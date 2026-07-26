@@ -147,6 +147,48 @@
       color: #00f0ff;
     }
 
+    .bull-banner {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      transform: translate(-50%, -140%);
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.8rem 1.2rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 240, 255, 0.18));
+      border: 1px solid rgba(0, 255, 136, 0.35);
+      box-shadow: 0 0 30px rgba(0, 255, 136, 0.22);
+      color: #00ff88;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.35s ease;
+    }
+    .bull-banner.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, 0);
+      animation: bullPulse 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes bullPulse {
+      from { box-shadow: 0 0 16px rgba(0, 255, 136, 0.18); }
+      to { box-shadow: 0 0 34px rgba(0, 255, 136, 0.38); }
+    }
+    .bull-icon {
+      font-size: 1.1rem;
+      animation: spinBull 0.8s linear infinite;
+    }
+    @keyframes spinBull {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     .winner-overlay {
       position: absolute;
       inset: 0;
@@ -218,6 +260,11 @@
       <div class="meta" id="meta"></div>
     </div>
 
+    <div class="bull-banner" id="bull-banner">
+      <span class="bull-icon">⚡</span>
+      <span>BULL</span>
+    </div>
+
     <div class="grid" id="grid"></div>
 
     <div class="checkout-bar" id="checkout-bar">
@@ -276,6 +323,7 @@
       const grid = document.getElementById('grid');
       const meta = document.getElementById('meta');
       const overlay = document.getElementById('winner-overlay');
+      const bullBanner = document.getElementById('bull-banner');
       const winnerName = document.getElementById('winner-name');
       const checkoutBar = document.getElementById('checkout-bar');
       const checkoutText = document.getElementById('checkout-text');
@@ -284,6 +332,7 @@
 
       screen.className = 'screen live';
       meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>`;
+      bullBanner.classList.toggle('show', !!data.bullEffect);
 
       if (data.gameOver && data.winner) {
         winnerName.textContent = data.winner;
