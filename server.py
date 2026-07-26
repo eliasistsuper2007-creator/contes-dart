@@ -23,6 +23,7 @@ _game_state = {
     "gameOver": False,
     "winner": None,
     "players": [],
+    "bullEffect": False,
     "updatedAt": 0
 }
 _state_lock = threading.Lock()
@@ -94,6 +95,7 @@ def api_state():
                 "gameOver": bool(data.get("gameOver", False)),
                 "winner": data.get("winner"),
                 "players": data.get("players") or [],
+                "bullEffect": bool(data.get("bullEffect", False)),
                 "updatedAt": int(time.time() * 1000),
             }
         return jsonify({"ok": True})
