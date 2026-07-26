@@ -1501,8 +1501,9 @@
       }
 
       if (state.turnThrowIndex >= 3) {
-        const nextPlayerName = state.players[(state.currentPlayer + 1) % state.playerCount].name;
-        state.currentPlayer = (state.currentPlayer + 1) % state.playerCount;
+        const nextPlayerIndex = (state.currentPlayer + 1) % state.playerCount;
+        const nextPlayerName = state.players[nextPlayerIndex]?.name || state.players[state.currentPlayer]?.name || 'Nächster Spieler';
+        state.currentPlayer = nextPlayerIndex;
         if (state.currentPlayer === 0) state.round += 1;
         state.turnThrows = [];
         state.turnThrowIndex = 0;
@@ -1510,6 +1511,7 @@
         renderHistory();
         updateCheckoutHint();
         updateTurnInfo();
+        await syncGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
         input.value = '';
         input.focus();
