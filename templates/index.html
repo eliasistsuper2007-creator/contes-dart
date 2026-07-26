@@ -775,7 +775,8 @@
       throwHistory: [],
       ledOn: false,
       ledColor: 'off',
-      socketOn: false
+      socketOn: false,
+      bullEffect: false
     };
 
     const $ = id => document.getElementById(id);
@@ -885,7 +886,8 @@
                 name: p.name,
                 score: p.score,
                 dartsThrown: p.dartsThrown
-              }))
+              })),
+              bullEffect: extra.bullEffect ?? state.bullEffect
             })
           });
         } catch (e) {
@@ -907,6 +909,37 @@
     }
 
     function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    async function triggerBullEffect() {
+      state.bullEffect = true;
+      await pushGameState({ bullEffect: true });
+      try {
+        for (let i = 0; i < 4; i++) {
+          state.ledOn = true;
+          state.ledColor = 'green';
+          updateLedVisuals();
+          await tuyaAction('led_green');
+          await delay(140);
+
+          state.ledOn = false;
+          state.ledColor = 'off';
+          updateLedVisuals();
+          await tuyaAction('led_off');
+          await delay(100);
+        }
+
+        state.ledOn = true;
+        state.ledColor = 'green';
+        updateLedVisuals();
+        await tuyaAction('led_green');
+      } catch (err) {
+        console.error('Bull-Effekt:', err);
+      }
+
+      await delay(1400);
+      state.bullEffect = false;
+      await pushGameState({ bullEffect: false });
+    }
 
     function showToast(msg, type = '') {
       const t = $('toast');
@@ -1066,6 +1099,7 @@
       state.ledOn = false;
       state.ledColor = 'off';
       state.socketOn = false;
+      state.bullEffect = false;
 
       updateLedVisuals();
       $('btn-start').disabled = false;
@@ -1244,6 +1278,7 @@
       const previous = player.score;
       const remaining = previous - score;
       const isBullAllowed = previous === 25 || previous === 26;
+      const isBullThrow = throwSelection.value === 25;
 
       if (remaining < 0 || (remaining === 1 && !isBullAllowed)) {
         showToast('BUST!', 'bust');
@@ -1267,6 +1302,11 @@
       renderHistory();
       updateCheckoutHint();
       await pushGameState();
+
+      if (isBullThrow) {
+        showToast('Bull! 🎯', 'success');
+        await triggerBullEffect();
+      }
 
       if (player.score === 0) {
         state.gameOver = true;
