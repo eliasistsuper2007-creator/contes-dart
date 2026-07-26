@@ -27,7 +27,7 @@
       display: none;
       justify-content: space-between;
       align-items: baseline;
-      padding: 1.2rem 1.5rem 0.8rem;
+      padding: 0.7rem 1.2rem 0.5rem;
       border-bottom: 1px solid rgba(255,255,255,0.1);
       flex-shrink: 0;
     }
@@ -35,7 +35,7 @@
     .title {
       font-family: 'Orbitron', sans-serif;
       font-weight: 900;
-      font-size: clamp(1.1rem, 2.8vw, 1.8rem);
+      font-size: clamp(1rem, 2.5vw, 1.6rem);
       letter-spacing: 0.14em;
       background: linear-gradient(135deg, #00f0ff, #ff00aa);
       -webkit-background-clip: text;
@@ -43,7 +43,7 @@
     }
     .meta {
       font-family: 'Orbitron', sans-serif;
-      font-size: clamp(0.85rem, 1.8vw, 1.15rem);
+      font-size: clamp(0.75rem, 1.8vw, 1rem);
       color: #8a8aa0;
       letter-spacing: 0.08em;
     }
@@ -51,83 +51,74 @@
 
     .grid {
       display: none;
-      flex: 1 1 auto;
-      gap: 0.7rem;
-      padding: 0.7rem 0.9rem 0.35rem;
-      align-content: stretch;
+      flex: 1;
       min-height: 0;
+      grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+      gap: 0.7rem;
+      padding: 0.6rem 1rem 0.3rem;
+      align-content: center;
+      overflow: hidden;
     }
     .screen.live .grid { display: grid; }
-
-    /* Adaptive columns by player count */
-    .grid.players-1 { grid-template-columns: minmax(0, 420px); justify-content: center; }
-    .grid.players-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid.players-3 { grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
-    .grid.players-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+    .grid.players-4 {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
 
     .card {
       background: #0a0a12;
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 0.7rem 0.55rem;
+      border-radius: 16px;
+      padding: 0.7rem 0.6rem;
       text-align: center;
       transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      min-width: 0;
       min-height: 0;
       overflow: hidden;
     }
     .card.active {
       border-color: #00f0ff;
-      box-shadow: 0 0 40px rgba(0,240,255,0.25);
-      transform: scale(1.03);
+      box-shadow: 0 0 28px rgba(0,240,255,0.25);
+      transform: scale(1.02);
     }
     .card.winner {
       border-color: #00ff88;
-      box-shadow: 0 0 50px rgba(0,255,136,0.3);
+      box-shadow: 0 0 36px rgba(0,255,136,0.3);
     }
     .card-name {
       font-family: 'Orbitron', sans-serif;
-      font-size: clamp(0.85rem, 1.8vw, 1.25rem);
-      letter-spacing: 0.06em;
+      font-size: clamp(0.75rem, 1.8vw, 1.15rem);
+      letter-spacing: 0.08em;
       color: #8a8aa0;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.25rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .card.active .card-name { color: #00f0ff; }
     .card.winner .card-name { color: #00ff88; }
-
     .card-score {
       font-family: 'Orbitron', sans-serif;
       font-weight: 900;
-      font-size: clamp(2rem, 7.4vw, 5rem);
+      font-size: clamp(2.2rem, 9vh, 5.5rem);
       line-height: 1;
       color: #e8e8f0;
     }
-    .grid.players-4 .card-score {
-      font-size: clamp(1.7rem, 5.4vw, 3.4rem);
-    }
-    .grid.players-3 .card-score {
-      font-size: clamp(1.9rem, 6.2vw, 4.2rem);
-    }
     .card.active .card-score { color: #00f0ff; }
     .card.winner .card-score { color: #00ff88; }
-
     .card-meta {
-      margin-top: 0.5rem;
-      font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+      margin-top: 0.3rem;
+      font-size: clamp(0.7rem, 1.4vw, 1rem);
       color: #8a8aa0;
     }
     .badge {
       display: inline-block;
-      margin-top: 0.5rem;
-      padding: 0.2rem 0.65rem;
+      margin-top: 0.35rem;
+      padding: 0.15rem 0.55rem;
       border-radius: 999px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       letter-spacing: 0.08em;
       font-weight: 700;
     }
@@ -140,12 +131,11 @@
       color: #00ff88;
     }
 
-    /* Checkout-Leiste unten */
     .checkout-bar {
       display: none;
-      margin: 0.25rem 0.9rem 0.7rem;
-      padding: 0.7rem 1rem;
-      border-radius: 14px;
+      margin: 0.3rem 1rem 0.7rem;
+      padding: 0.55rem 1rem;
+      border-radius: 12px;
       background: rgba(0, 255, 136, 0.08);
       border: 1px solid rgba(0, 255, 136, 0.3);
       text-align: center;
@@ -154,21 +144,21 @@
     .screen.live .checkout-bar.visible { display: block; }
     .checkout-label {
       font-family: 'Orbitron', sans-serif;
-      font-size: clamp(0.7rem, 1.3vw, 0.9rem);
+      font-size: clamp(0.65rem, 1.3vw, 0.85rem);
       letter-spacing: 0.15em;
       color: #8a8aa0;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.2rem;
     }
     .checkout-text {
       font-family: 'Orbitron', sans-serif;
       font-weight: 700;
-      font-size: clamp(1.15rem, 3vw, 2rem);
-      letter-spacing: 0.05em;
+      font-size: clamp(1rem, 2.8vw, 1.7rem);
+      letter-spacing: 0.06em;
       color: #00ff88;
     }
     .checkout-player {
-      margin-top: 0.3rem;
-      font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+      margin-top: 0.2rem;
+      font-size: clamp(0.75rem, 1.5vw, 0.95rem);
       color: #00f0ff;
     }
 
@@ -226,6 +216,51 @@
       font-size: clamp(1rem, 2vw, 1.3rem);
       letter-spacing: 0.08em;
     }
+
+    .bust-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20, 0, 0, 0.9);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s;
+    }
+    .bust-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .bust-card {
+      text-align: center;
+      padding: 2rem;
+      animation: bustPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes bustPop {
+      0% { transform: scale(0.35); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .bust-label {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(4rem, 18vw, 9rem);
+      letter-spacing: 0.12em;
+      color: #ff6b00;
+      text-shadow: 0 0 40px rgba(255, 107, 0, 0.8), 0 0 80px rgba(255, 107, 0, 0.45);
+      animation: bustPulse 0.45s ease-in-out infinite alternate;
+    }
+    @keyframes bustPulse {
+      from { filter: drop-shadow(0 0 10px rgba(255,107,0,0.5)); }
+      to   { filter: drop-shadow(0 0 40px rgba(255,107,0,1)); }
+    }
+    .bust-sub {
+      margin-top: 1.2rem;
+      color: #c0c0d0;
+      font-size: clamp(1.1rem, 3vw, 1.8rem);
+      letter-spacing: 0.08em;
+    }
   </style>
 </head>
 <body>
@@ -250,52 +285,27 @@
         <div class="winner-sub">Glückwunsch!</div>
       </div>
     </div>
+
+    <div class="bust-overlay" id="bust-overlay">
+      <div class="bust-card">
+        <div class="bust-label">BUST</div>
+        <div class="bust-sub" id="bust-sub">Zug ungültig</div>
+      </div>
+    </div>
   </div>
 
   <script>
-    // Erweiterte Checkout-Tabelle (Standard Double-Out)
     const commonCheckouts = {
       170: 'T20 T20 Bull', 167: 'T20 T19 Bull', 164: 'T20 T18 Bull', 161: 'T20 T17 Bull',
       160: 'T20 T20 D20', 158: 'T20 T20 D19', 157: 'T20 T19 D20', 156: 'T20 T20 D18',
-      155: 'T20 T19 D19', 154: 'T20 T18 D20', 153: 'T20 T19 D18', 152: 'T20 T20 D16',
-      151: 'T20 T17 D20', 150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20',
-      147: 'T20 T17 D18', 146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12',
-      143: 'T20 T17 D16', 142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10',
-      139: 'T20 T13 D20', 138: 'T20 T18 D12', 137: 'T20 T19 D10', 136: 'T20 T20 D8',
-      135: 'T20 T17 D12', 134: 'T20 T14 D16', 133: 'T20 T19 D8', 132: 'T20 T16 D12',
-      131: 'T20 T13 D16', 130: 'T20 T20 D5', 129: 'T19 T16 D20', 128: 'T18 T14 D20',
-      127: 'T20 T17 D8', 126: 'T19 T19 D6', 125: 'T20 T19 D4', 124: 'T20 T16 D8',
-      123: 'T19 T16 D18', 122: 'T18 T18 D7', 121: 'T20 T11 D14', 120: 'T20 20 D20',
-      119: 'T19 T12 D20', 118: 'T20 18 D20', 117: 'T20 17 D20', 116: 'T20 16 D20',
-      115: 'T20 15 D20', 114: 'T20 14 D20', 113: 'T20 13 D20', 112: 'T20 12 D20',
-      111: 'T20 11 D20', 110: 'T20 10 D20', 109: 'T20 9 D20', 108: 'T20 8 D20',
-      107: 'T19 10 D20', 106: 'T20 6 D20', 105: 'T20 5 D20', 104: 'T20 4 D20',
-      103: 'T19 6 D20', 102: 'T20 10 D16', 101: 'T17 10 D20', 100: 'T20 D20',
-      99: 'T19 10 D16', 98: 'T20 D19', 97: 'T19 D20', 96: 'T20 D18',
-      95: 'T19 D19', 94: 'T18 D20', 93: 'T19 D18', 92: 'T20 D16',
-      91: 'T17 D20', 90: 'T20 D15', 89: 'T19 D16', 88: 'T20 D14',
-      87: 'T17 D18', 86: 'T18 D16', 85: 'T15 D20', 84: 'T20 D12',
-      83: 'T17 D16', 82: 'T14 D20', 81: 'T19 D12', 80: 'T20 D10',
-      79: 'T13 D20', 78: 'T18 D12', 77: 'T19 D10', 76: 'T20 D8',
-      75: 'T17 D12', 74: 'T14 D16', 73: 'T19 D8', 72: 'T16 D12',
-      71: 'T13 D16', 70: 'T10 D20', 69: 'T19 D6', 68: 'T20 D4',
-      67: 'T17 D8', 66: 'T10 D18', 65: 'T19 D4', 64: 'T16 D8',
-      63: 'T13 D12', 62: 'T10 D16', 61: 'T15 D8', 60: '20 D20',
-      59: '19 D20', 58: '18 D20', 57: '17 D20', 56: '16 D20',
-      55: '15 D20', 54: '14 D20', 53: '13 D20', 52: '12 D20',
-      51: '11 D20', 50: 'Bull', 49: '9 D20', 48: '16 D16',
-      47: '15 D16', 46: '14 D16', 45: '13 D16', 44: '12 D16',
-      43: '11 D16', 42: '10 D16', 41: '9 D16', 40: 'D20',
-      39: '7 D16', 38: 'D19', 37: '5 D16', 36: 'D18',
-      35: '3 D16', 34: 'D17', 33: '1 D16', 32: 'D16',
-      31: '15 D8', 30: 'D15', 29: '13 D8', 28: 'D14',
-      27: '11 D8', 26: 'D13', 25: '9 D8', 24: 'D12',
-      23: '7 D8', 22: 'D11', 21: '5 D8', 20: 'D10',
-      19: '3 D8', 18: 'D9', 17: '1 D8', 16: 'D8',
-      15: '7 D4', 14: 'D7', 13: '5 D4', 12: 'D6',
-      11: '3 D4', 10: 'D5', 9: '1 D4', 8: 'D4',
-      7: '3 D2', 6: 'D3', 5: '1 D2', 4: 'D2',
-      3: '1 D1', 2: 'D1'
+      155: 'T20 T19 D19', 154: 'T20 T18 D20', 152: 'T20 T20 D16', 151: 'T20 T17 D20',
+      150: 'T20 T18 D18', 149: 'T20 T19 D16', 148: 'T20 T16 D20', 147: 'T20 T17 D18',
+      146: 'T20 T18 D16', 145: 'T20 T15 D20', 144: 'T20 T20 D12', 143: 'T20 T17 D16',
+      142: 'T20 T14 D20', 141: 'T20 T19 D12', 140: 'T20 T20 D10', 136: 'T20 T20 D8',
+      132: 'T20 T16 D12', 130: 'T20 T20 D5', 120: 'T20 20 D20', 110: 'T20 10 D20',
+      100: 'T20 D20', 98: 'T20 D19', 96: 'T20 D18', 80: 'T20 D10', 60: '20 D20',
+      50: 'Bull', 40: 'D20', 36: 'D18', 32: 'D16', 24: 'D12', 20: 'D10',
+      16: 'D8', 12: 'D6', 10: 'D5', 8: 'D4', 6: 'D3', 4: 'D2', 2: 'D1'
     };
 
     function getCheckout(score) {
@@ -321,39 +331,48 @@
       const meta = document.getElementById('meta');
       const overlay = document.getElementById('winner-overlay');
       const winnerName = document.getElementById('winner-name');
+      const bustOverlay = document.getElementById('bust-overlay');
+      const bustSub = document.getElementById('bust-sub');
       const checkoutBar = document.getElementById('checkout-bar');
       const checkoutText = document.getElementById('checkout-text');
       const checkoutPlayer = document.getElementById('checkout-player');
 
       const showWinner = data.gameOver && data.winner;
-      const showIdle = !data.players || data.players.length === 0 || (!data.active && !showWinner);
+      const showBust = !!data.bust;
+      const showIdle = !data.players || data.players.length === 0 || (!data.active && !showWinner && !showBust);
 
       if (showIdle) {
         screen.className = 'screen idle';
         grid.innerHTML = '';
         grid.className = 'grid';
         overlay.classList.remove('show');
+        if (bustOverlay) bustOverlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
         return;
       }
 
-      const n = data.players.length;
       screen.className = 'screen live';
-      grid.className = 'grid players-' + Math.min(Math.max(n, 1), 4);
       meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>`;
+      grid.className = 'grid' + (data.players.length === 4 ? ' players-4' : '');
 
-      if (showWinner) {
+      if (showBust) {
+        if (bustSub) {
+          bustSub.textContent = data.bustPlayer
+            ? `${data.bustPlayer} · Zug ungültig`
+            : 'Zug ungültig';
+        }
+        if (bustOverlay) bustOverlay.classList.add('show');
+        overlay.classList.remove('show');
+        checkoutBar.classList.remove('visible');
+      } else if (showWinner) {
         winnerName.textContent = data.winner;
         overlay.classList.add('show');
+        if (bustOverlay) bustOverlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
       } else {
         overlay.classList.remove('show');
-
-        const currentIndex = Math.min(
-          Math.max(Number(data.currentPlayer) || 0, 0),
-          Math.max((data.players || []).length - 1, 0)
-        );
-        const current = data.players[currentIndex];
+        if (bustOverlay) bustOverlay.classList.remove('show');
+        const current = data.players[data.currentPlayer];
         const hint = current ? getCheckout(current.score) : null;
         if (hint && current) {
           checkoutText.textContent = hint;
@@ -365,7 +384,7 @@
       }
 
       grid.innerHTML = data.players.map((p, idx) => {
-        const isActive = !data.gameOver && idx === data.currentPlayer;
+        const isActive = !data.gameOver && !showBust && idx === data.currentPlayer;
         const isWinner = data.gameOver && data.winner === p.name;
         let cls = 'card';
         if (isActive) cls += ' active';
