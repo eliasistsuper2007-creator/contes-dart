@@ -24,6 +24,7 @@ _game_state = {
     "winner": None,
     "bust": False,
     "bustPlayer": None,
+    "lastEvent": None,
     "players": [],
     "updatedAt": 0
 }
@@ -97,6 +98,7 @@ def api_state():
                 "winner": data.get("winner"),
                 "bust": bool(data.get("bust", False)),
                 "bustPlayer": data.get("bustPlayer"),
+                "lastEvent": data.get("lastEvent"),
                 "players": data.get("players") or [],
                 "updatedAt": int(time.time() * 1000),
             }
