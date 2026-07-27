@@ -934,6 +934,7 @@
       scoreAtTurnStart: 0,
       bust: false,
       bustPlayer: null,
+      lastEvent: null, // { type, player, score, at }
       ledOn: false,
       ledColor: 'off',
       socketOn: false
@@ -953,6 +954,7 @@
             winner: state.winner,
             bust: state.bust,
             bustPlayer: state.bustPlayer,
+            lastEvent: state.lastEvent,
             players: state.players.map(p => ({
               name: p.name,
               score: p.score,
@@ -1378,6 +1380,7 @@
       state.scoreAtTurnStart = 0;
       state.bust = false;
       state.bustPlayer = null;
+      state.lastEvent = null;
       state.ledOn = false;
       state.ledColor = 'off';
       state.socketOn = false;
@@ -1657,24 +1660,31 @@
 
       // Special hit animations (confetti) – does not touch LEDs
       let specialHit = false;
-      const isDBull = score === 50 && ((hitValue === 25 && hitMult === 2) || hitValue === 50);
+      const isDBull = score === 50 && hitValue === 25 && hitMult === 2;
       const isBull = score === 25 || (hitValue === 25 && hitMult === 1);
       if (score === 180) {
         specialHit = true;
         fire180Confetti();
         showFloatScore('180!', 'oneeighty');
         showToast('🔥 MAXIMUM! 180', 'success');
+        state.lastEvent = { type: '180', player: player.name, score, at: Date.now() };
       } else if (isDBull) {
         specialHit = true;
         fireBullConfetti();
         showFloatScore('DOUBLE BULL!', 'dbull');
         showToast('💥 Double Bull!', 'success');
+        state.lastEvent = { type: 'dbull', player: player.name, score, at: Date.now() };
       } else if (isBull || score === 50) {
         specialHit = true;
         fireBullConfetti();
         showFloatScore(score === 50 ? 'BULL 50!' : 'BULL!', 'bull');
         showToast('🎯 Bullseye!', 'success');
+        state.lastEvent = { type: 'bull', player: player.name, score, at: Date.now() };
+      } else {
+        state.lastEvent = null;
       }
+      // Push event to display screen
+      await syncGameState();
 
       if (player.score === 0) {
         state.gameOver = true;
