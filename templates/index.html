@@ -1634,6 +1634,10 @@
         return;
       }
 
+      // Capture selection before reset (for Bull / DBull detection)
+      const hitValue = throwSelection.value;
+      const hitMult = throwSelection.multiplier;
+
       player.score = remaining;
       player.dartsThrown += 1;
       state.turnThrows.push(score);
@@ -1651,6 +1655,27 @@
       updateCheckoutHint();
       await syncGameState();
 
+      // Special hit animations (confetti) – does not touch LEDs
+      let specialHit = false;
+      const isDBull = score === 50 && ((hitValue === 25 && hitMult === 2) || hitValue === 50);
+      const isBull = score === 25 || (hitValue === 25 && hitMult === 1);
+      if (score === 180) {
+        specialHit = true;
+        fire180Confetti();
+        showFloatScore('180!', 'oneeighty');
+        showToast('🔥 MAXIMUM! 180', 'success');
+      } else if (isDBull) {
+        specialHit = true;
+        fireBullConfetti();
+        showFloatScore('DOUBLE BULL!', 'dbull');
+        showToast('💥 Double Bull!', 'success');
+      } else if (isBull || score === 50) {
+        specialHit = true;
+        fireBullConfetti();
+        showFloatScore(score === 50 ? 'BULL 50!' : 'BULL!', 'bull');
+        showToast('🎯 Bullseye!', 'success');
+      }
+
       if (player.score === 0) {
         state.gameOver = true;
         state.winner = player.name;
@@ -1659,6 +1684,7 @@
 
         $('winner-name').textContent = player.name;
         $('overlay-winner').classList.add('show');
+        fireWinConfetti();
 
         try {
           await tuyaBlinkLedGreen(10000, 250);
@@ -1694,7 +1720,9 @@
         return;
       }
 
-      showToast(`Wurf ${state.turnThrowIndex} gespeichert`, 'success');
+      if (!specialHit) {
+        showToast(`Wurf ${state.turnThrowIndex} gespeichert`, 'success');
+      }
       input.focus();
     }
 
