@@ -262,6 +262,50 @@
       letter-spacing: 0.08em;
     }
 
+
+    .hit-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 28;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s;
+    }
+    .hit-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .hit-label {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 12vw, 6rem);
+      letter-spacing: 0.08em;
+      text-align: center;
+      animation: hitPop 1.4s cubic-bezier(0.22, 1.2, 0.36, 1) forwards;
+      text-shadow: 0 0 40px currentColor;
+    }
+    .hit-label.bull { color: #ffd700; }
+    .hit-label.dbull { color: #ff00aa; }
+    .hit-label.oneeighty { color: #00f0ff; }
+    .hit-sub {
+      margin-top: 0.6rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(0.9rem, 2.5vw, 1.4rem);
+      letter-spacing: 0.12em;
+      color: #8a8aa0;
+      text-align: center;
+    }
+    @keyframes hitPop {
+      0%   { opacity: 0; transform: scale(0.35); }
+      20%  { opacity: 1; transform: scale(1.12); }
+      70%  { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.9); }
+    }
+
     #confetti-canvas {
       position: absolute;
       inset: 0;
@@ -302,6 +346,12 @@
       </div>
     </div>
 
+    <div class="hit-overlay" id="hit-overlay">
+      <div>
+        <div class="hit-label" id="hit-label">BULL!</div>
+        <div class="hit-sub" id="hit-sub"></div>
+      </div>
+    </div>
     <canvas id="confetti-canvas"></canvas>
   </div>
 
@@ -423,6 +473,67 @@
       setTimeout(() => spawnConfetti({ count: 90, originX: 0.5, originY: 0.05, velocity: 13 }), 550);
     }
 
+    function fireBullConfetti() {
+      spawnConfetti({ count: 100, originY: 0.1, velocity: 14, duration: 3000 });
+      spawnConfetti({ count: 55, originX: 0.22, originY: 0.08, velocity: 12, duration: 2600 });
+      spawnConfetti({ count: 55, originX: 0.78, originY: 0.08, velocity: 12, duration: 2600 });
+    }
+
+    function fire180Confetti() {
+      spawnConfetti({ count: 120, originY: 0.1, velocity: 16, duration: 3400 });
+      spawnConfetti({ count: 60, originX: 0.28, originY: 0.12, velocity: 13, duration: 2800 });
+      spawnConfetti({ count: 60, originX: 0.72, originY: 0.12, velocity: 13, duration: 2800 });
+    }
+
+    let lastEventAt = null;
+    let hitHideTimer = null;
+
+    function showHitOverlay(type, player) {
+      const overlay = document.getElementById('hit-overlay');
+      const label = document.getElementById('hit-label');
+      const sub = document.getElementById('hit-sub');
+      if (!overlay || !label) return;
+
+      label.className = 'hit-label';
+      if (type === 'dbull') {
+        label.textContent = 'DOUBLE BULL!';
+        label.classList.add('dbull');
+      } else if (type === '180') {
+        label.textContent = '180!';
+        label.classList.add('oneeighty');
+      } else {
+        label.textContent = type === 'bull' && false ? 'BULL 50!' : 'BULL!';
+        if (type === 'bull') label.textContent = 'BULL!';
+        label.classList.add('bull');
+      }
+      sub.textContent = player ? player : '';
+
+      // restart animation
+      label.style.animation = 'none';
+      void label.offsetWidth;
+      label.style.animation = '';
+
+      overlay.classList.add('show');
+      if (hitHideTimer) clearTimeout(hitHideTimer);
+      hitHideTimer = setTimeout(() => overlay.classList.remove('show'), 1600);
+    }
+
+    function handleLastEvent(ev) {
+      if (!ev || !ev.at || ev.at === lastEventAt) return;
+      lastEventAt = ev.at;
+      resizeConfetti();
+      if (ev.type === 'dbull') {
+        fireBullConfetti();
+        showHitOverlay('dbull', ev.player);
+      } else if (ev.type === 'bull') {
+        fireBullConfetti();
+        showHitOverlay('bull', ev.player);
+      } else if (ev.type === '180') {
+        fire180Confetti();
+        showHitOverlay('180', ev.player);
+      }
+    }
+
     async function loadState() {
       try {
         const res = await fetch('/api/state');
@@ -497,6 +608,9 @@
           checkoutBar.classList.remove('visible');
         }
       }
+
+      // Special throw events (Bull / DBull / 180) from main app
+      if (data.lastEvent) handleLastEvent(data.lastEvent);
 
       grid.innerHTML = data.players.map((p, idx) => {
         const isActive = !data.gameOver && !showBust && idx === data.currentPlayer;
