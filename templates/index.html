@@ -1351,10 +1351,14 @@
       state.bust = false;
       state.bustPlayer = null;
       state.scoreAtTurnStart = state.players[0]?.score ?? state.mode;
+      state.lastEvent = null;
       $('info-mode').textContent = state.mode;
       renderPlayers();
+      renderHistory(); // History-UI leeren (sonst bleiben Würfe vom letzten Spiel stehen)
       updateCheckoutHint();
       updateTurnInfo();
+      resetThrowSelection();
+      $('score-input').value = '';
       $('score-input').focus();
       await syncGameState();
     }
@@ -1393,6 +1397,11 @@
       $('btn-start').innerHTML = '<span>▶ START</span>';
       $('score-input').value = '';
       resetThrowSelection();
+      // History-Anzeige leeren
+      const histList = $('history-list');
+      if (histList) histList.innerHTML = '';
+      const histSum = $('round-summary');
+      if (histSum) histSum.innerHTML = 'Noch keine Würfe in dieser Runde';
 
       document.querySelectorAll('#mode-options .option-btn').forEach(btn => btn.classList.remove('selected'));
       document.querySelectorAll('#players-options .option-btn').forEach(btn => btn.classList.remove('selected'));
