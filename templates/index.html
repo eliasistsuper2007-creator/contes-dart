@@ -635,6 +635,35 @@
     }
 
 
+
+    .mute-btn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 50;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      color: var(--text);
+      font-size: 1.15rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .mute-btn:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+    .mute-btn.is-muted {
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
     .smart-indicator {
       position: fixed;
       top: 1rem;
@@ -862,6 +891,8 @@
   </div>
 
   <div id="game-screen">
+  <button class="mute-btn" id="mute-btn" type="button" title="Sound an/aus">🔊</button>
+
     <div class="smart-indicator">
       <div class="row"><span class="led-dot on-green" style="width:10px;height:10px;"></span> LED Grün</div>
       <div class="row">🔌 Steckdose AN</div>
@@ -1097,6 +1128,122 @@
       t.className = 'toast show ' + type;
       setTimeout(() => t.classList.remove('show'), 2600);
     }
+
+    /* ========== SOUND ENGINE (Web Audio) ========== */
+    const soundState = {
+      muted: localStorage.getItem('dartMuted') === '1',
+      ctx: null
+    };
+
+    function getAudioCtx() {
+      if (!soundState.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        soundState.ctx = new AC();
+      }
+      if (soundState.ctx.state === 'suspended') {
+        soundState.ctx.resume().catch(() => {});
+      }
+      return soundState.ctx;
+    }
+
+    function tone(freq, duration, type = 'sine', volume = 0.12, when = 0) {
+      if (soundState.muted) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t0 = ctx.currentTime + when;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.05);
+    }
+
+    function noiseBurst(duration = 0.15, volume = 0.08) {
+      if (soundState.muted) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const len = Math.floor(ctx.sampleRate * duration);
+      const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 800;
+      filter.Q.value = 0.8;
+      src.buffer = buffer;
+      gain.gain.value = volume;
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+    }
+
+    function playSound(name) {
+      if (soundState.muted) return;
+      try {
+        getAudioCtx();
+        switch (name) {
+          case 'throw':
+            tone(520, 0.07, 'triangle', 0.07);
+            tone(780, 0.06, 'sine', 0.05, 0.04);
+            break;
+          case 'bull':
+            tone(660, 0.12, 'sine', 0.11);
+            tone(880, 0.14, 'triangle', 0.09, 0.08);
+            tone(1320, 0.18, 'sine', 0.07, 0.16);
+            break;
+          case 'dbull':
+            tone(740, 0.1, 'sine', 0.11);
+            tone(990, 0.12, 'triangle', 0.1, 0.07);
+            tone(1480, 0.16, 'sine', 0.08, 0.14);
+            tone(1760, 0.2, 'sine', 0.06, 0.22);
+            break;
+          case '180':
+            tone(523, 0.1, 'square', 0.07);
+            tone(659, 0.1, 'square', 0.07, 0.09);
+            tone(784, 0.1, 'square', 0.07, 0.18);
+            tone(1046, 0.22, 'sine', 0.1, 0.28);
+            break;
+          case 'bust':
+            noiseBurst(0.18, 0.1);
+            tone(180, 0.28, 'sawtooth', 0.09);
+            tone(120, 0.35, 'sine', 0.08, 0.08);
+            break;
+          case 'win':
+            const notes = [523, 659, 784, 1046, 784, 1046, 1318];
+            notes.forEach((f, i) => tone(f, 0.22, i > 4 ? 'sine' : 'triangle', 0.1, i * 0.12));
+            break;
+          case 'next':
+            tone(440, 0.08, 'sine', 0.06);
+            tone(550, 0.1, 'sine', 0.05, 0.07);
+            break;
+          default:
+            break;
+        }
+      } catch (e) {
+        console.warn('Sound error', e);
+      }
+    }
+
+    function updateMuteBtn() {
+      const btn = document.getElementById('mute-btn');
+      if (!btn) return;
+      btn.textContent = soundState.muted ? '🔇' : '🔊';
+      btn.classList.toggle('is-muted', soundState.muted);
+      btn.title = soundState.muted ? 'Sound an' : 'Sound aus';
+    }
+
+    document.addEventListener('click', () => { getAudioCtx(); }, { once: true });
+
 
     /* ========== CONFETTI ENGINE ========== */
     const confettiCanvas = document.getElementById('confetti-canvas');
@@ -1620,6 +1767,7 @@
         $('bust-sub').textContent = `${player.name} · Punktestand zurück auf ${state.scoreAtTurnStart}`;
         $('overlay-bust').classList.add('show');
         showToast('BUST! Zug ungültig', 'bust');
+        playSound('bust');
 
         resetThrowSelection();
         input.value = '';
@@ -1650,6 +1798,7 @@
         updateTurnInfo();
         await syncGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
+        playSound('next');
         input.focus();
         return;
       }
@@ -1684,18 +1833,21 @@
         fire180Confetti();
         showFloatScore('180!', 'oneeighty');
         showToast('🔥 MAXIMUM! 180', 'success');
+        playSound('180');
         state.lastEvent = { type: '180', player: player.name, score, at: Date.now() };
       } else if (isDBull) {
         specialHit = true;
         fireBullConfetti();
         showFloatScore('DOUBLE BULL!', 'dbull');
         showToast('💥 Double Bull!', 'success');
+        playSound('dbull');
         state.lastEvent = { type: 'dbull', player: player.name, score, at: Date.now() };
       } else if (isBull || score === 50) {
         specialHit = true;
         fireBullConfetti();
         showFloatScore(score === 50 ? 'BULL 50!' : 'BULL!', 'bull');
         showToast('🎯 Bullseye!', 'success');
+        playSound('bull');
         state.lastEvent = { type: 'bull', player: player.name, score, at: Date.now() };
       } else {
         state.lastEvent = null;
@@ -1712,6 +1864,7 @@
         $('winner-name').textContent = player.name;
         $('overlay-winner').classList.add('show');
         fireWinConfetti();
+        playSound('win');
 
         try {
           await tuyaBlinkLedGreen(10000, 250);
@@ -1742,6 +1895,7 @@
         updateTurnInfo();
         await syncGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
+        playSound('next');
         input.value = '';
         input.focus();
         return;
@@ -1749,6 +1903,7 @@
 
       if (!specialHit) {
         showToast(`Wurf ${state.turnThrowIndex} gespeichert`, 'success');
+        playSound('throw');
       }
       input.focus();
     }
