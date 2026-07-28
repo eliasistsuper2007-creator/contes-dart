@@ -444,12 +444,84 @@
       return null;
     }
 
+
+    /* ========== SOUND (optional on display) ========== */
+    const soundState = {
+      muted: localStorage.getItem('dartMuted') === '1',
+      ctx: null
+    };
+    function getAudioCtx() {
+      if (!soundState.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        soundState.ctx = new AC();
+      }
+      if (soundState.ctx.state === 'suspended') soundState.ctx.resume().catch(() => {});
+      return soundState.ctx;
+    }
+    function tone(freq, duration, type = 'sine', volume = 0.12, when = 0) {
+      if (soundState.muted) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t0 = ctx.currentTime + when;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.05);
+    }
+    function noiseBurst(duration = 0.15, volume = 0.08) {
+      if (soundState.muted) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const len = Math.floor(ctx.sampleRate * duration);
+      const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 800;
+      src.buffer = buffer;
+      gain.gain.value = volume;
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+    }
+    function playSound(name) {
+      if (soundState.muted) return;
+      try {
+        getAudioCtx();
+        if (name === 'bull') {
+          tone(660, 0.12, 'sine', 0.11); tone(880, 0.14, 'triangle', 0.09, 0.08); tone(1320, 0.18, 'sine', 0.07, 0.16);
+        } else if (name === 'dbull') {
+          tone(740, 0.1, 'sine', 0.11); tone(990, 0.12, 'triangle', 0.1, 0.07); tone(1480, 0.16, 'sine', 0.08, 0.14);
+        } else if (name === '180') {
+          tone(523, 0.1, 'square', 0.07); tone(659, 0.1, 'square', 0.07, 0.09); tone(784, 0.1, 'square', 0.07, 0.18); tone(1046, 0.22, 'sine', 0.1, 0.28);
+        } else if (name === 'bust') {
+          noiseBurst(0.18, 0.1); tone(180, 0.28, 'sawtooth', 0.09); tone(120, 0.35, 'sine', 0.08, 0.08);
+        } else if (name === 'win') {
+          [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => tone(f, 0.22, i > 4 ? 'sine' : 'triangle', 0.1, i * 0.12));
+        }
+      } catch (e) {}
+    }
+    document.addEventListener('click', () => getAudioCtx(), { once: true });
+
     /* ========== CONFETTI ========== */
     const confettiCanvas = document.getElementById('confetti-canvas');
     const confettiCtx = confettiCanvas.getContext('2d');
     let confettiParticles = [];
     let confettiRaf = null;
     let lastWinnerFired = null;
+    let lastBustShown = false;
 
     function resizeConfetti() {
       confettiCanvas.width = confettiCanvas.clientWidth || window.innerWidth;
@@ -593,12 +665,15 @@
       if (ev.type === 'dbull') {
         fireBullConfetti();
         showHitOverlay('dbull', ev.player);
+        playSound('dbull');
       } else if (ev.type === 'bull') {
         fireBullConfetti();
         showHitOverlay('bull', ev.player);
+        playSound('bull');
       } else if (ev.type === '180') {
         fire180Confetti();
         showHitOverlay('180', ev.player);
+        playSound('180');
       }
     }
 
@@ -655,7 +730,12 @@
         if (bustOverlay) bustOverlay.classList.add('show');
         overlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
+        if (!lastBustShown) {
+          lastBustShown = true;
+          playSound('bust');
+        }
       } else if (showWinner) {
+        lastBustShown = false;
         winnerName.textContent = data.winner;
         overlay.classList.add('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
@@ -664,11 +744,13 @@
           lastWinnerFired = data.winner;
           resizeConfetti();
           fireWinConfetti();
+          playSound('win');
         }
       } else {
         overlay.classList.remove('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
         lastWinnerFired = null;
+        lastBustShown = false;
         const current = data.players[data.currentPlayer];
         const hint = current ? getCheckout(current.score) : null;
         if (hint && current) {
