@@ -306,6 +306,69 @@
       100% { opacity: 0; transform: scale(0.9); }
     }
 
+
+    .throws-bar {
+      display: none;
+      flex-shrink: 0;
+      margin: 0 1rem 0.5rem;
+      padding: 0.55rem 0.9rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 0;
+    }
+    .screen.live .throws-bar { display: block; }
+    .throws-bar.hidden-by-overlay { display: none !important; }
+    .throws-current {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(0.7rem, 1.5vw, 0.95rem);
+      letter-spacing: 0.08em;
+      color: #00f0ff;
+      margin-bottom: 0.35rem;
+    }
+    .throws-current span { color: #e8e8f0; font-weight: 700; }
+    .throws-current .sum { color: #00ff88; }
+    .throws-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    .throw-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: clamp(0.7rem, 1.4vw, 0.9rem);
+      letter-spacing: 0.04em;
+    }
+    .throw-chip .who {
+      color: #8a8aa0;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75em;
+      max-width: 7em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .throw-chip .pts {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      color: #00f0ff;
+    }
+    .throw-chip.fresh {
+      border-color: rgba(0,240,255,0.45);
+      box-shadow: 0 0 12px rgba(0,240,255,0.2);
+    }
+    .throws-empty {
+      color: #8a8aa0;
+      font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+      letter-spacing: 0.06em;
+    }
+
     #confetti-canvas {
       position: absolute;
       inset: 0;
@@ -329,6 +392,11 @@
       <div class="checkout-label">CHECKOUT</div>
       <div class="checkout-text" id="checkout-text">—</div>
       <div class="checkout-player" id="checkout-player"></div>
+    </div>
+
+    <div class="throws-bar" id="throws-bar">
+      <div class="throws-current" id="throws-current"></div>
+      <div class="throws-list" id="throws-list"></div>
     </div>
 
     <div class="winner-overlay" id="winner-overlay">
@@ -567,7 +635,10 @@
         overlay.classList.remove('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
+        const throwsBarIdle = document.getElementById('throws-bar');
+        if (throwsBarIdle) throwsBarIdle.classList.add('hidden-by-overlay');
         lastWinnerFired = null;
+        lastEventAt = null;
         return;
       }
 
@@ -611,6 +682,47 @@
 
       // Special throw events (Bull / DBull / 180) from main app
       if (data.lastEvent) handleLastEvent(data.lastEvent);
+
+      // Throws history on display
+      const throwsBar = document.getElementById('throws-bar');
+      const throwsCurrent = document.getElementById('throws-current');
+      const throwsList = document.getElementById('throws-list');
+      if (throwsBar && throwsList) {
+        if (showBust || showWinner) {
+          throwsBar.classList.add('hidden-by-overlay');
+        } else {
+          throwsBar.classList.remove('hidden-by-overlay');
+          const turn = data.turnThrows || [];
+          const curPlayer = (data.players && data.players[data.currentPlayer])
+            ? data.players[data.currentPlayer].name
+            : '';
+          const turnIdx = (data.turnThrowIndex != null) ? data.turnThrowIndex : turn.length;
+          if (throwsCurrent) {
+            if (turn.length > 0) {
+              const sum = turn.reduce((a, b) => a + b, 0);
+              const parts = turn.map((v, i) => `W${i + 1}: ${v}`).join(' · ');
+              throwsCurrent.innerHTML =
+                `<span>${curPlayer}</span> · ${parts} · Summe: <span class="sum">${sum}</span>` +
+                (turnIdx < 3 ? ` · Wurf ${turnIdx + 1}/3` : '');
+            } else if (curPlayer) {
+              throwsCurrent.innerHTML = `<span>${curPlayer}</span> · Wurf 1 von 3`;
+            } else {
+              throwsCurrent.textContent = '';
+            }
+          }
+          const recent = data.recentThrows || [];
+          if (recent.length === 0) {
+            throwsList.innerHTML = '<span class="throws-empty">Noch keine Würfe</span>';
+          } else {
+            throwsList.innerHTML = recent.map((e, i) => `
+              <div class="throw-chip${i === 0 ? ' fresh' : ''}">
+                <span class="who">${e.player || ''}</span>
+                <span class="pts">-${e.score}</span>
+              </div>
+            `).join('');
+          }
+        }
+      }
 
       grid.innerHTML = data.players.map((p, idx) => {
         const isActive = !data.gameOver && !showBust && idx === data.currentPlayer;
