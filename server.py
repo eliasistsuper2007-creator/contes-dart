@@ -25,6 +25,9 @@ _game_state = {
     "bust": False,
     "bustPlayer": None,
     "lastEvent": None,
+    "turnThrows": [],
+    "turnThrowIndex": 0,
+    "recentThrows": [],
     "players": [],
     "updatedAt": 0
 }
@@ -99,6 +102,9 @@ def api_state():
                 "bust": bool(data.get("bust", False)),
                 "bustPlayer": data.get("bustPlayer"),
                 "lastEvent": data.get("lastEvent"),
+                "turnThrows": data.get("turnThrows") or [],
+                "turnThrowIndex": data.get("turnThrowIndex", 0),
+                "recentThrows": data.get("recentThrows") or [],
                 "players": data.get("players") or [],
                 "updatedAt": int(time.time() * 1000),
             }
