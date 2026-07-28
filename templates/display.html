@@ -370,24 +370,6 @@
     }
 
 
-    .mute-btn {
-      position: absolute;
-      top: 0.6rem;
-      left: 0.6rem;
-      z-index: 40;
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.55);
-      color: #e8e8f0;
-      font-size: 1.1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .mute-btn.is-muted { opacity: 0.55; color: #8a8aa0; }
 
     #confetti-canvas {
       position: absolute;
@@ -401,7 +383,6 @@
 </head>
 <body>
   <div class="screen idle" id="screen">
-    <button class="mute-btn" id="mute-btn" type="button" title="Sound an/aus">🔊</button>
     <div class="header">
       <div class="title">CONTES DART</div>
       <div class="meta" id="meta"></div>
@@ -468,7 +449,7 @@
 
     /* ========== SOUND (optional on display) ========== */
     const soundState = {
-      muted: localStorage.getItem('dartMuted') === '1',
+      muted: false,
       ctx: null
     };
     function getAudioCtx() {
@@ -534,55 +515,7 @@
         }
       } catch (e) {}
     }
-    function updateMuteBtn() {
-      const btn = document.getElementById('mute-btn');
-      if (!btn) return;
-      btn.textContent = soundState.muted ? '🔇' : '🔊';
-      btn.classList.toggle('is-muted', soundState.muted);
-      btn.title = soundState.muted ? 'Sound an' : 'Sound aus';
-    }
     document.addEventListener('click', () => getAudioCtx(), { once: true });
-    document.addEventListener('DOMContentLoaded', () => {
-      updateMuteBtn();
-      const btn = document.getElementById('mute-btn');
-      if (btn) {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          soundState.muted = !soundState.muted;
-          localStorage.setItem('dartMuted', soundState.muted ? '1' : '0');
-          updateMuteBtn();
-          if (!soundState.muted) {
-            // tiny test click feedback
-            try {
-              const ctx = getAudioCtx();
-              if (ctx) {
-                const o = ctx.createOscillator();
-                const g = ctx.createGain();
-                o.frequency.value = 880;
-                g.gain.value = 0.06;
-                o.connect(g); g.connect(ctx.destination);
-                o.start();
-                o.stop(ctx.currentTime + 0.08);
-              }
-            } catch (_) {}
-          }
-        });
-      }
-    });
-    // also run immediately if DOM already ready
-    if (document.readyState !== 'loading') {
-      updateMuteBtn();
-      const btn = document.getElementById('mute-btn');
-      if (btn && !btn._bound) {
-        btn._bound = true;
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          soundState.muted = !soundState.muted;
-          localStorage.setItem('dartMuted', soundState.muted ? '1' : '0');
-          updateMuteBtn();
-        });
-      }
-    }
 
     /* ========== CONFETTI ========== */
     const confettiCanvas = document.getElementById('confetti-canvas');
