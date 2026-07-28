@@ -955,6 +955,14 @@
             bust: state.bust,
             bustPlayer: state.bustPlayer,
             lastEvent: state.lastEvent,
+            turnThrows: state.turnThrows.slice(),
+            turnThrowIndex: state.turnThrowIndex,
+            recentThrows: state.throwHistory.slice(0, 8).map(e => ({
+              player: e.player,
+              score: e.score,
+              label: e.label,
+              remaining: e.remaining
+            })),
             players: state.players.map(p => ({
               name: p.name,
               score: p.score,
