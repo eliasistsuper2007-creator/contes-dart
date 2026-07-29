@@ -83,6 +83,22 @@
       box-shadow: 0 0 28px rgba(0,240,255,0.25);
       transform: scale(1.02);
     }
+
+    .card.ai-card {
+      border-color: rgba(255,0,170,0.35);
+    }
+    .card.ai-card.active {
+      border-color: #ff00aa;
+      box-shadow: 0 0 28px rgba(255,0,170,0.3);
+    }
+    .card.ai-card.active .card-name { color: #ff00aa; }
+    .card.ai-card.active .card-score { color: #ff00aa; }
+    .card.ai-card .card-name { color: #ff00aa; }
+    .badge.ai {
+      background: rgba(255,0,170,0.15);
+      color: #ff00aa;
+    }
+
     .card.winner {
       border-color: #00ff88;
       box-shadow: 0 0 36px rgba(0,255,136,0.3);
@@ -720,7 +736,8 @@
       }
 
       screen.className = 'screen live';
-      meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>`;
+      const vsLabel = data.vsAI ? ' &nbsp;·&nbsp; <span style="color:#ff00aa">VS KI</span>' : '';
+      meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>${vsLabel}`;
       grid.className = 'grid' + (data.players.length === 4 ? ' players-4' : '');
 
       if (showBust) {
@@ -811,12 +828,17 @@
       grid.innerHTML = data.players.map((p, idx) => {
         const isActive = !data.gameOver && !showBust && idx === data.currentPlayer;
         const isWinner = data.gameOver && data.winner === p.name;
+        const isAI = !!p.isAI;
         let cls = 'card';
         if (isActive) cls += ' active';
         if (isWinner) cls += ' winner';
+        if (isAI) cls += ' ai-card';
         let badge = '';
-        if (isActive) badge = '<div class="badge active">AM ZUG</div>';
+        if (isActive) badge = isAI
+          ? '<div class="badge ai">KI AM ZUG</div>'
+          : '<div class="badge active">AM ZUG</div>';
         if (isWinner) badge = '<div class="badge winner">SIEGER</div>';
+        if (isAI && !isActive && !isWinner) badge = '<div class="badge ai">KI</div>';
         return `
           <div class="${cls}">
             <div class="card-name">${p.name}</div>
