@@ -28,6 +28,7 @@ _game_state = {
     "turnThrows": [],
     "turnThrowIndex": 0,
     "recentThrows": [],
+    "vsAI": False,
     "players": [],
     "updatedAt": 0
 }
@@ -105,6 +106,7 @@ def api_state():
                 "turnThrows": data.get("turnThrows") or [],
                 "turnThrowIndex": data.get("turnThrowIndex", 0),
                 "recentThrows": data.get("recentThrows") or [],
+                "vsAI": bool(data.get("vsAI", False)),
                 "players": data.get("players") or [],
                 "updatedAt": int(time.time() * 1000),
             }
