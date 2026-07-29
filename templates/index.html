@@ -281,17 +281,19 @@
 
 
     .btn-end-game {
-      padding: 0.45rem 0.85rem;
+      padding: 0.55rem 1rem;
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 0.08em;
-      color: #ff6b6b;
-      background: rgba(255, 50, 50, 0.12);
-      border: 1px solid rgba(255, 80, 80, 0.35);
+      color: #fff;
+      background: linear-gradient(135deg, #ff3b3b, #cc1f1f);
+      border: 1px solid rgba(255, 120, 120, 0.5);
       border-radius: 999px;
       cursor: pointer;
       transition: all 0.2s;
+      box-shadow: 0 0 16px rgba(255, 50, 50, 0.35);
+      white-space: nowrap;
     }
     .btn-end-game:hover {
       background: rgba(255, 50, 50, 0.25);
@@ -999,6 +1001,7 @@
       <div class="header-info">
         <div>Modus: <span id="info-mode">501</span></div>
         <div>Runde: <span id="info-round">1</span></div>
+        <button type="button" class="btn-end-game" id="btn-end-game">✖ SPIEL BEENDEN</button>
       </div>
     </div>
 
@@ -2157,6 +2160,9 @@
         state.aborted = false;
         const aiWon = !!(player.isAI);
         state.humanLost = aiWon;
+        if (aiWon) {
+          state.lastEvent = { type: 'gameover', player: player.name, score: 0, at: Date.now() };
+        }
         await syncGameState();
         const inputEl2 = $('score-input');
         if (inputEl2) inputEl2.value = '';
@@ -2194,6 +2200,8 @@
           try { await tuyaTurnLedOff(); } catch (_) {}
         }
 
+        // Give display time to poll GAME OVER / winner state
+        await delay(2500);
         if (winOverlay) {
           winOverlay.classList.remove('show');
           winOverlay.classList.remove('lose');
