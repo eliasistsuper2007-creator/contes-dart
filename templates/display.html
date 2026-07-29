@@ -178,6 +178,45 @@
       color: #00f0ff;
     }
 
+
+    .gameover-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 22;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.9);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s ease, visibility 0.35s;
+    }
+    .gameover-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .gameover-card { text-align: center; padding: 2rem; }
+    .gameover-label {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.5rem, 12vw, 6.5rem);
+      letter-spacing: 0.14em;
+      color: #ff6b00;
+      text-shadow: 0 0 40px rgba(255, 107, 0, 0.75), 0 0 80px rgba(255, 50, 0, 0.4);
+      animation: goPulse 0.7s ease-in-out infinite alternate;
+    }
+    .gameover-sub {
+      margin-top: 1.2rem;
+      color: #c0c0d0;
+      font-size: clamp(1rem, 2.5vw, 1.6rem);
+      letter-spacing: 0.1em;
+      font-family: 'Orbitron', sans-serif;
+    }
+    @keyframes goPulse {
+      from { filter: drop-shadow(0 0 10px rgba(255,107,0,0.45)); }
+      to   { filter: drop-shadow(0 0 36px rgba(255,107,0,1)); }
+    }
+
     .winner-overlay {
       position: absolute;
       inset: 0;
@@ -419,9 +458,16 @@
 
     <div class="winner-overlay" id="winner-overlay">
       <div class="winner-card">
-        <div class="winner-label">GEWINNER</div>
+        <div class="winner-label" id="winner-label">GEWINNER</div>
         <div class="winner-name" id="winner-name">—</div>
-        <div class="winner-sub">Glückwunsch!</div>
+        <div class="winner-sub" id="winner-sub">Glückwunsch!</div>
+      </div>
+    </div>
+
+    <div class="gameover-overlay" id="gameover-overlay">
+      <div class="gameover-card">
+        <div class="gameover-label">GAME OVER</div>
+        <div class="gameover-sub" id="gameover-sub">Spiel beendet</div>
       </div>
     </div>
 
@@ -528,6 +574,15 @@
           noiseBurst(0.18, 0.1); tone(180, 0.28, 'sawtooth', 0.09); tone(120, 0.35, 'sine', 0.08, 0.08);
         } else if (name === 'win') {
           [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => tone(f, 0.22, i > 4 ? 'sine' : 'triangle', 0.1, i * 0.12));
+        } else if (name === 'lose') {
+          tone(400, 0.25, 'sawtooth', 0.09);
+          tone(300, 0.3, 'sawtooth', 0.08, 0.2);
+          tone(180, 0.45, 'sine', 0.1, 0.4);
+          tone(120, 0.55, 'sine', 0.08, 0.55);
+        } else if (name === 'gameover') {
+          tone(220, 0.35, 'triangle', 0.1);
+          tone(165, 0.4, 'sine', 0.09, 0.25);
+          tone(110, 0.6, 'sine', 0.08, 0.5);
         }
       } catch (e) {}
     }
@@ -539,6 +594,7 @@
     let confettiParticles = [];
     let confettiRaf = null;
     let lastWinnerFired = null;
+    let lastGameOverKey = null;
     let lastBustShown = false;
 
     function resizeConfetti() {
@@ -728,9 +784,12 @@
         overlay.classList.remove('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
+        const goIdle = document.getElementById('gameover-overlay');
+        if (goIdle) goIdle.classList.remove('show');
         const throwsBarIdle = document.getElementById('throws-bar');
         if (throwsBarIdle) throwsBarIdle.classList.add('hidden-by-overlay');
         lastWinnerFired = null;
+        lastGameOverKey = null;
         lastEventAt = null;
         return;
       }
@@ -740,7 +799,35 @@
       meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>${vsLabel}`;
       grid.className = 'grid' + (data.players.length === 4 ? ' players-4' : '');
 
-      if (showBust) {
+      const goOverlay = document.getElementById('gameover-overlay');
+      const goSub = document.getElementById('gameover-sub');
+      const showAbort = !!data.aborted && !!data.gameOver;
+      const showLose = !!data.humanLost && !!data.gameOver && !!data.winner;
+
+      if (showAbort) {
+        if (goSub) goSub.textContent = 'Spiel manuell beendet';
+        if (goOverlay) goOverlay.classList.add('show');
+        overlay.classList.remove('show');
+        if (bustOverlay) bustOverlay.classList.remove('show');
+        checkoutBar.classList.remove('visible');
+        const key = 'abort-' + (data.updatedAt || '');
+        if (lastGameOverKey !== key) {
+          lastGameOverKey = key;
+          playSound('gameover');
+        }
+      } else if (showLose) {
+        if (goSub) goSub.textContent = (data.winner || 'KI') + ' gewinnt';
+        if (goOverlay) goOverlay.classList.add('show');
+        // also show winner name optionally on game over
+        overlay.classList.remove('show');
+        if (bustOverlay) bustOverlay.classList.remove('show');
+        checkoutBar.classList.remove('visible');
+        const key = 'lose-' + (data.winner || '') + '-' + (data.updatedAt || '');
+        if (lastGameOverKey !== key) {
+          lastGameOverKey = key;
+          playSound('lose');
+        }
+      } else if (showBust) {
         if (bustSub) {
           bustSub.textContent = data.bustPlayer
             ? `${data.bustPlayer} · Zug ungültig`
@@ -768,7 +855,9 @@
       } else {
         overlay.classList.remove('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
+        if (goOverlay) goOverlay.classList.remove('show');
         lastWinnerFired = null;
+        lastGameOverKey = null;
         lastBustShown = false;
         const current = data.players[data.currentPlayer];
         const hint = current ? getCheckout(current.score) : null;
