@@ -199,7 +199,7 @@
     .gameover-label {
       font-family: 'Orbitron', sans-serif;
       font-weight: 900;
-      font-size: clamp(2.5rem, 12vw, 6.5rem);
+      font-size: clamp(3rem, 14vw, 7.5rem);
       letter-spacing: 0.14em;
       color: #ff6b00;
       text-shadow: 0 0 40px rgba(255, 107, 0, 0.75), 0 0 80px rgba(255, 50, 0, 0.4);
@@ -775,8 +775,12 @@
 
       const showBust = !!data.bust;
       const showAbort = !!(data.aborted && data.gameOver);
-      const winnerIsAI = !!(data.winner && Array.isArray(data.players) && data.players.some(p => p && p.isAI && p.name === data.winner));
-      const showLose = !!(data.gameOver && data.winner && (data.humanLost || winnerIsAI));
+      const winnerIsAI = !!(data.winner && (
+        data.humanLost ||
+        /ki|bot|cpu/i.test(String(data.winner)) ||
+        (Array.isArray(data.players) && data.players.some(p => p && p.isAI && p.name === data.winner))
+      ));
+      const showLose = !!(data.gameOver && data.winner && winnerIsAI);
       const showWinner = !!(data.gameOver && data.winner && !showLose && !showAbort);
       // Keep end screens visible even if active=false; only idle when nothing to show
       const showIdle = (!data.players || data.players.length === 0) && !showWinner && !showLose && !showAbort && !showBust;
@@ -818,11 +822,12 @@
           playSound('gameover');
         }
       } else if (showLose) {
-        if (goSub) goSub.textContent = (data.winner || 'Dart-KI') + ' gewinnt';
+        if (goSub) goSub.textContent = 'Dart-KI gewinnt';
         if (goOverlay) goOverlay.classList.add('show');
         overlay.classList.remove('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
+        // Never show the green "GEWINNER" overlay on AI win
         const key = 'lose-' + (data.winner || '') + '-' + (data.updatedAt || '');
         if (lastGameOverKey !== key) {
           lastGameOverKey = key;
