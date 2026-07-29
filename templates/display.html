@@ -182,7 +182,7 @@
     .gameover-overlay {
       position: absolute;
       inset: 0;
-      z-index: 22;
+      z-index: 35;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -773,9 +773,13 @@
       const checkoutText = document.getElementById('checkout-text');
       const checkoutPlayer = document.getElementById('checkout-player');
 
-      const showWinner = data.gameOver && data.winner;
       const showBust = !!data.bust;
-      const showIdle = !data.players || data.players.length === 0 || (!data.active && !showWinner && !showBust);
+      const showAbort = !!(data.aborted && data.gameOver);
+      const winnerIsAI = !!(data.winner && Array.isArray(data.players) && data.players.some(p => p && p.isAI && p.name === data.winner));
+      const showLose = !!(data.gameOver && data.winner && (data.humanLost || winnerIsAI));
+      const showWinner = !!(data.gameOver && data.winner && !showLose && !showAbort);
+      // Keep end screens visible even if active=false; only idle when nothing to show
+      const showIdle = (!data.players || data.players.length === 0) && !showWinner && !showLose && !showAbort && !showBust;
 
       if (showIdle) {
         screen.className = 'screen idle';
@@ -797,12 +801,10 @@
       screen.className = 'screen live';
       const vsLabel = data.vsAI ? ' &nbsp;·&nbsp; <span style="color:#ff00aa">VS KI</span>' : '';
       meta.innerHTML = `Modus: <span>${data.mode || '—'}</span> &nbsp;·&nbsp; Runde: <span>${data.round || 1}</span>${vsLabel}`;
-      grid.className = 'grid' + (data.players.length === 4 ? ' players-4' : '');
+      grid.className = 'grid' + ((data.players && data.players.length === 4) ? ' players-4' : '');
 
       const goOverlay = document.getElementById('gameover-overlay');
       const goSub = document.getElementById('gameover-sub');
-      const showAbort = !!data.aborted && !!data.gameOver;
-      const showLose = !!data.humanLost && !!data.gameOver && !!data.winner;
 
       if (showAbort) {
         if (goSub) goSub.textContent = 'Spiel manuell beendet';
@@ -810,15 +812,14 @@
         overlay.classList.remove('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
-        const key = 'abort-' + (data.updatedAt || '');
+        const key = 'abort-' + (data.updatedAt || data.winner || 'x');
         if (lastGameOverKey !== key) {
           lastGameOverKey = key;
           playSound('gameover');
         }
       } else if (showLose) {
-        if (goSub) goSub.textContent = (data.winner || 'KI') + ' gewinnt';
+        if (goSub) goSub.textContent = (data.winner || 'Dart-KI') + ' gewinnt';
         if (goOverlay) goOverlay.classList.add('show');
-        // also show winner name optionally on game over
         overlay.classList.remove('show');
         if (bustOverlay) bustOverlay.classList.remove('show');
         checkoutBar.classList.remove('visible');
@@ -878,7 +879,7 @@
       const throwsCurrent = document.getElementById('throws-current');
       const throwsList = document.getElementById('throws-list');
       if (throwsBar && throwsList) {
-        if (showBust || showWinner) {
+        if (showBust || showWinner || showLose || showAbort) {
           throwsBar.classList.add('hidden-by-overlay');
         } else {
           throwsBar.classList.remove('hidden-by-overlay');
