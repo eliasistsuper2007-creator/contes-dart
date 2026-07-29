@@ -900,6 +900,13 @@
         <button class="option-btn" data-players="4">4 Spieler</button>
       </div>
       <div id="player-name-inputs" class="name-inputs"></div>
+      <div class="ai-option-box" id="ai-option-box">
+        <div class="ai-option-title">GEGEN KI SPIELEN?</div>
+        <div class="ai-toggle-row">
+          <button type="button" class="ai-toggle-btn selected" id="ai-off-btn" data-ai="0">Solo üben</button>
+          <button type="button" class="ai-toggle-btn" id="ai-on-btn" data-ai="1">⚔ Gegen Dart-KI</button>
+        </div>
+      </div>
       <button class="btn-primary" id="btn-players-next" disabled>SPIEL STARTEN</button>
       <button class="btn-back" id="btn-players-back">← Zurück</button>
       <div class="device-panel">
@@ -1371,6 +1378,7 @@
     });
 
     let selectedPlayers = null;
+    let selectedVsAI = false;
     function renderPlayerNameInputs() {
       const container = $('player-name-inputs');
       if (!selectedPlayers) {
@@ -1481,7 +1489,6 @@
 
 
     /* ========== ADAPTIVE DART AI ========== */
-    let selectedVsAI = false;
 
     function getHumanPlayer() {
       return state.players.find(p => !p.isAI) || state.players[0];
@@ -1490,6 +1497,7 @@
       return state.players.find(p => p.isAI) || null;
     }
     function isAITurn() {
+      if (!state.vsAI || !state.players || !state.players.length) return false;
       const p = state.players[state.currentPlayer];
       return !!(p && p.isAI);
     }
@@ -1601,6 +1609,17 @@
     }
 
     async function setLedForCurrentPlayer() {
+      // Only switch LED colors in AI matches (red = KI, green = human).
+      if (!state.vsAI) {
+        const ind0 = document.querySelector('.smart-indicator');
+        if (ind0) {
+          const ledRow0 = ind0.querySelector('.row');
+          if (ledRow0) {
+            ledRow0.innerHTML = '<span class="led-dot on-green" style="width:10px;height:10px;"></span> LED Grün';
+          }
+        }
+        return;
+      }
       try {
         if (isAITurn()) {
           await tuyaTurnLedOn('red');
