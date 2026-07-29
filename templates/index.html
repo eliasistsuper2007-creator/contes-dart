@@ -637,6 +637,95 @@
 
 
 
+
+    .ai-option-box {
+      margin: 0.8rem 0 0.4rem;
+      padding: 0.9rem;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,0,170,0.06);
+      text-align: left;
+      display: none;
+    }
+    .ai-option-box.visible { display: block; }
+    .ai-option-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      color: var(--neon-magenta);
+      margin-bottom: 0.6rem;
+    }
+    .ai-toggle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+    }
+    .ai-toggle-btn {
+      padding: 0.75rem 0.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--glass);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .ai-toggle-btn:hover {
+      border-color: var(--neon-magenta);
+    }
+    .ai-toggle-btn.selected {
+      border-color: var(--neon-magenta);
+      background: rgba(255,0,170,0.18);
+      color: var(--neon-magenta);
+      box-shadow: 0 0 20px rgba(255,0,170,0.2);
+    }
+    .player-card.ai-card {
+      border-color: rgba(255,0,170,0.35);
+    }
+    .player-card.ai-card.active {
+      border-color: var(--neon-magenta);
+      box-shadow: 0 0 30px rgba(255,0,170,0.28);
+    }
+    .player-card.ai-card.active .player-score { color: var(--neon-magenta); }
+    .player-card.ai-card .player-name { color: var(--neon-magenta); }
+    .ai-badge {
+      display: inline-block;
+      margin-top: 0.35rem;
+      padding: 0.12rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      background: rgba(255,0,170,0.15);
+      color: var(--neon-magenta);
+    }
+    .ai-thinking {
+      margin-top: 0.8rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      background: rgba(255,0,170,0.1);
+      border: 1px solid rgba(255,0,170,0.3);
+      color: var(--neon-magenta);
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.08em;
+      text-align: center;
+      display: none;
+      animation: aiPulse 1.2s ease-in-out infinite;
+    }
+    .ai-thinking.visible { display: block; }
+    @keyframes aiPulse {
+      0%, 100% { opacity: 0.75; }
+      50% { opacity: 1; }
+    }
+    .input-section.ai-locked {
+      opacity: 0.45;
+      pointer-events: none;
+      filter: grayscale(0.3);
+    }
+
     .smart-indicator {
       position: fixed;
       top: 1rem;
@@ -879,7 +968,9 @@
 
     <div class="players-grid" id="players-grid"></div>
 
-    <div class="input-section">
+    <div class="ai-thinking" id="ai-thinking">🤖 Dart-KI denkt nach…</div>
+
+    <div class="input-section" id="input-section">
       <div class="input-label">WURF-AUSWAHL (Single / Double / Triple)</div>
       <div class="turn-info" id="turn-info">Wurf 1 von 3</div>
       <div class="score-input-row">
@@ -924,6 +1015,7 @@
     const state = {
       mode: null,
       playerCount: null,
+      vsAI: false,
       players: [],
       currentPlayer: 0,
       round: 1,
@@ -937,6 +1029,8 @@
       bust: false,
       bustPlayer: null,
       lastEvent: null, // { type, player, score, at }
+      playerSkill: { scored: 0, darts: 0 },
+      aiBusy: false,
       ledOn: false,
       ledColor: 'off',
       socketOn: false
@@ -965,10 +1059,12 @@
               label: e.label,
               remaining: e.remaining
             })),
+            vsAI: !!state.vsAI,
             players: state.players.map(p => ({
               name: p.name,
               score: p.score,
-              dartsThrown: p.dartsThrown
+              dartsThrown: p.dartsThrown,
+              isAI: !!p.isAI
             }))
           })
         });
@@ -1302,11 +1398,32 @@
         selectedPlayers = parseInt(btn.dataset.players, 10);
         renderPlayerNameInputs();
         $('btn-players-next').disabled = false;
+        const aiBox = $('ai-option-box');
+        if (aiBox) {
+          if (selectedPlayers === 1) {
+            aiBox.classList.add('visible');
+          } else {
+            aiBox.classList.remove('visible');
+            selectedVsAI = false;
+            document.querySelectorAll('.ai-toggle-btn').forEach(b => b.classList.remove('selected'));
+            const off = $('ai-off-btn');
+            if (off) off.classList.add('selected');
+          }
+        }
+      });
+    });
+
+    document.querySelectorAll('.ai-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ai-toggle-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedVsAI = btn.dataset.ai === '1';
       });
     });
 
     $('btn-players-next').addEventListener('click', async () => {
-      state.playerCount = selectedPlayers;
+      state.vsAI = selectedPlayers === 1 && selectedVsAI;
+      state.playerCount = state.vsAI ? 2 : selectedPlayers;
       overlays.players.classList.add('hidden');
       overlays.activate.classList.remove('hidden');
 
@@ -1314,8 +1431,21 @@
       state.players = nameInputs.map((input, idx) => ({
         name: input.value.trim() || `Spieler ${idx + 1}`,
         score: state.mode,
-        dartsThrown: 0
+        dartsThrown: 0,
+        isAI: false
       }));
+      if (state.vsAI) {
+        if (!state.players[0].name || state.players[0].name.startsWith('Spieler')) {
+          state.players[0].name = nameInputs[0]?.value.trim() || 'Du';
+        }
+        state.players.push({
+          name: 'Dart-KI',
+          score: state.mode,
+          dartsThrown: 0,
+          isAI: true
+        });
+      }
+      state.playerSkill = { scored: 0, darts: 0 };
 
       $('status-socket-act').textContent = 'SCHALTE EIN…';
       $('status-socket-act').className = 'status-badge pending';
@@ -1349,6 +1479,186 @@
       overlays.mode.classList.remove('hidden');
     });
 
+
+    /* ========== ADAPTIVE DART AI ========== */
+    let selectedVsAI = false;
+
+    function getHumanPlayer() {
+      return state.players.find(p => !p.isAI) || state.players[0];
+    }
+    function getAIPlayer() {
+      return state.players.find(p => p.isAI) || null;
+    }
+    function isAITurn() {
+      const p = state.players[state.currentPlayer];
+      return !!(p && p.isAI);
+    }
+
+    function getHumanThreeDartAvg() {
+      if (!state.playerSkill || state.playerSkill.darts < 3) return 42;
+      return (state.playerSkill.scored / state.playerSkill.darts) * 3;
+    }
+
+    function trackHumanThrow(score) {
+      if (!state.playerSkill) state.playerSkill = { scored: 0, darts: 0 };
+      state.playerSkill.scored += score;
+      state.playerSkill.darts += 1;
+    }
+
+    function weightedPick(items) {
+      const total = items.reduce((s, x) => s + x[1], 0);
+      let r = Math.random() * total;
+      for (const [val, w] of items) {
+        r -= w;
+        if (r <= 0) return val;
+      }
+      return items[items.length - 1][0];
+    }
+
+    function aiSingleDart(skill, remaining) {
+      if (remaining <= 0) return 0;
+      if (remaining <= 40 && remaining % 2 === 0 && Math.random() < 0.35 + skill * 0.5) {
+        return remaining;
+      }
+      if (remaining === 50 && Math.random() < 0.25 + skill * 0.4) return 50;
+      if (remaining <= 60 && remaining > 40 && Math.random() < skill * 0.55) {
+        const doubles = [40, 32, 36, 24, 16, 20];
+        for (const d of doubles) {
+          if (remaining - d >= 0 && remaining - d <= 60) {
+            const need = remaining - d;
+            if (need > 0 && need <= 60) return need;
+          }
+        }
+      }
+      if (skill > 0.75) {
+        return weightedPick([
+          [60, 28], [57, 8], [54, 7], [50, 6], [40, 8], [36, 4],
+          [26, 3], [20, 5], [19, 2], [18, 2], [15, 2], [0, 2], [25, 3]
+        ]);
+      }
+      if (skill > 0.55) {
+        return weightedPick([
+          [60, 16], [45, 6], [40, 8], [36, 5], [30, 5], [26, 6],
+          [20, 12], [19, 4], [18, 4], [15, 4], [10, 3], [5, 3], [0, 5], [25, 4], [50, 3]
+        ]);
+      }
+      if (skill > 0.35) {
+        return weightedPick([
+          [60, 8], [40, 6], [26, 8], [20, 16], [19, 5], [18, 5],
+          [15, 6], [12, 4], [10, 5], [5, 6], [1, 3], [0, 8], [25, 3]
+        ]);
+      }
+      return weightedPick([
+        [20, 14], [15, 8], [10, 8], [5, 10], [1, 6], [0, 14],
+        [26, 6], [18, 5], [12, 4], [40, 3], [60, 2]
+      ]);
+    }
+
+    function aiTargetSkill() {
+      const humanAvg = getHumanThreeDartAvg();
+      let base = (humanAvg - 20) / 70;
+      base = Math.max(0.15, Math.min(0.92, base));
+      const human = getHumanPlayer();
+      const ai = getAIPlayer();
+      if (human && ai) {
+        const gap = ai.score - human.score;
+        if (gap > 100) base = Math.min(0.95, base + 0.12);
+        else if (gap > 40) base = Math.min(0.92, base + 0.06);
+        else if (gap < -100) base = Math.max(0.12, base - 0.12);
+        else if (gap < -40) base = Math.max(0.15, base - 0.06);
+      }
+      base += (Math.random() - 0.5) * 0.1;
+      return Math.max(0.1, Math.min(0.95, base));
+    }
+
+    function aiPlanVisit(remaining) {
+      const skill = aiTargetSkill();
+      const darts = [];
+      let left = remaining;
+      for (let i = 0; i < 3; i++) {
+        if (left <= 0) break;
+        if (i === 0 && left <= 170 && left > 1 && skill > 0.6 && Math.random() < skill * 0.35) {
+          const finishes = {
+            170: [60, 60, 50], 160: [60, 60, 40], 140: [60, 60, 20], 100: [60, 40],
+            80: [40, 40], 60: [20, 40], 50: [50], 40: [40], 32: [32], 16: [16], 8: [8], 4: [4], 2: [2]
+          };
+          if (finishes[left] && Math.random() < 0.45 + skill * 0.3) {
+            return finishes[left].slice();
+          }
+        }
+        let s = aiSingleDart(skill, left);
+        if (s > left) {
+          if (Math.random() < 0.35 + skill * 0.4) {
+            s = Math.min(left > 1 ? left - 1 : 0, weightedPick([[20, 5], [10, 3], [5, 2], [0, 2]]));
+            if (s < 0) s = 0;
+          }
+        }
+        darts.push(Math.max(0, Math.min(180, Math.round(s))));
+        left -= darts[darts.length - 1];
+        if (left <= 0) break;
+      }
+      return darts;
+    }
+
+    async function setLedForCurrentPlayer() {
+      try {
+        if (isAITurn()) {
+          await tuyaTurnLedOn('red');
+        } else {
+          await tuyaSetLedGreen();
+        }
+      } catch (e) {
+        console.error('LED turn color', e);
+      }
+      const ind = document.querySelector('.smart-indicator');
+      if (ind) {
+        const ledRow = ind.querySelector('.row');
+        if (ledRow) {
+          const isRed = isAITurn();
+          ledRow.innerHTML = isRed
+            ? '<span class="led-dot on-red" style="width:10px;height:10px;"></span> LED Rot (KI)'
+            : '<span class="led-dot on-green" style="width:10px;height:10px;"></span> LED Grün';
+        }
+      }
+    }
+
+    function setAIThinking(on, text) {
+      const el = $('ai-thinking');
+      const section = $('input-section');
+      if (el) {
+        el.textContent = text || '🤖 Dart-KI denkt nach…';
+        el.classList.toggle('visible', !!on);
+      }
+      if (section) section.classList.toggle('ai-locked', !!on);
+      state.aiBusy = !!on;
+    }
+
+    async function runAITurn() {
+      if (!state.vsAI || state.gameOver || !isAITurn()) return;
+      const ai = state.players[state.currentPlayer];
+      if (!ai || !ai.isAI) return;
+
+      setAIThinking(true, '🤖 Dart-KI zielt…');
+      await setLedForCurrentPlayer();
+      await delay(700 + Math.random() * 600);
+
+      const plan = aiPlanVisit(ai.score);
+      for (let i = 0; i < plan.length; i++) {
+        if (state.gameOver) break;
+        if (!isAITurn()) break;
+        setAIThinking(true, `🤖 Dart-KI wirft… (${i + 1}/3)`);
+        await delay(550 + Math.random() * 500);
+        const result = await applyThrow(plan[i], { fromAI: true });
+        if (result === 'bust' || result === 'win' || result === 'turn-over') break;
+      }
+
+      setAIThinking(false);
+      if (!state.gameOver && !isAITurn()) {
+        await setLedForCurrentPlayer();
+      }
+    }
+
+
     async function startGame() {
       overlays.activate.classList.add('hidden');
       $('game-screen').classList.add('active');
@@ -1372,7 +1682,9 @@
       resetThrowSelection();
       $('score-input').value = '';
       $('score-input').focus();
+      setAIThinking(false);
       await syncGameState();
+      await setLedForCurrentPlayer();
     }
 
     function resetToStartScreen() {
@@ -1385,7 +1697,10 @@
 
       state.mode = null;
       state.playerCount = null;
+      state.vsAI = false;
       state.players = [];
+      state.playerSkill = { scored: 0, darts: 0 };
+      state.aiBusy = false;
       state.currentPlayer = 0;
       state.round = 1;
       state.history = [];
@@ -1429,15 +1744,20 @@
         const card = document.createElement('div');
         card.className = 'player-card' +
           (idx === state.currentPlayer && !state.gameOver ? ' active' : '') +
-          (p.score === 0 ? ' winner' : '');
+          (p.score === 0 ? ' winner' : '') +
+          (p.isAI ? ' ai-card' : '');
+        const badge = p.isAI ? '<div class="ai-badge">KI</div>' : '';
         card.innerHTML = `
           <div class="player-name">${p.name}</div>
           <div class="player-score">${p.score}</div>
           <div class="player-meta">${p.dartsThrown} Darts</div>
+          ${badge}
         `;
         grid.appendChild(card);
       });
       $('info-round').textContent = state.round;
+      const title = document.querySelector('.game-title');
+      if (title) title.textContent = state.vsAI ? 'DU vs DART-KI' : 'DART ARENA';
     }
 
     function renderHistory() {
@@ -1594,20 +1914,23 @@
       updateScorePreview();
     }
 
-    async function commitThrow() {
-      if (state.gameOver || state.bust) return;
-      const input = $('score-input');
-      let score = parseInt(input.value, 10);
+
+    /**
+     * Apply a single dart score. Returns: 'ok' | 'bust' | 'win' | 'turn-over'
+     */
+    async function applyThrow(score, opts = {}) {
+      const fromAI = !!opts.fromAI;
+      if (state.gameOver || state.bust) return 'ok';
       if (isNaN(score) || score < 0 || score > 180) {
-        showToast('Ungültige Punktzahl (0–180)', 'bust');
-        return;
+        if (!fromAI) showToast('Ungültige Punktzahl (0–180)', 'bust');
+        return 'ok';
       }
 
       const player = state.players[state.currentPlayer];
+      if (!player) return 'ok';
       const previous = player.score;
       const remaining = previous - score;
 
-      // ——— BUST: ganzer Zug ungültig, Score zurück auf Wert vor dem Zug ———
       if (remaining < 0) {
         const throwsThisTurn = state.turnThrows.length;
         player.score = state.scoreAtTurnStart;
@@ -1626,20 +1949,20 @@
         showToast('BUST! Zug ungültig', 'bust');
 
         resetThrowSelection();
-        input.value = '';
+        const inputEl = $('score-input');
+        if (inputEl) inputEl.value = '';
         renderPlayers();
         renderHistory();
         updateCheckoutHint();
         updateTurnInfo();
+        state.lastEvent = null;
         await syncGameState();
 
-        try {
-          await tuyaFlashLedRed(1000);
-        } catch (e) {
-          console.error(e);
+        if (!fromAI) {
+          try { await tuyaFlashLedRed(1000); } catch (e) { console.error(e); }
         }
 
-        await delay(400);
+        await delay(fromAI ? 700 : 400);
         $('overlay-bust').classList.remove('show');
         state.bust = false;
         state.bustPlayer = null;
@@ -1654,11 +1977,13 @@
         updateTurnInfo();
         await syncGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
-        input.focus();
-        return;
+        if (!fromAI) {
+          await setLedForCurrentPlayer();
+          if (isAITurn()) setTimeout(() => runAITurn(), 400);
+        }
+        return 'bust';
       }
 
-      // Capture selection before reset (for Bull / DBull detection)
       const hitValue = throwSelection.value;
       const hitMult = throwSelection.multiplier;
 
@@ -1672,6 +1997,11 @@
         label: `Wurf ${state.turnThrowIndex}`,
         remaining: player.score
       });
+
+      if (!fromAI && !player.isAI) {
+        trackHumanThrow(score);
+      }
+
       updateTurnInfo();
       resetThrowSelection();
       renderPlayers();
@@ -1679,7 +2009,6 @@
       updateCheckoutHint();
       await syncGameState();
 
-      // Special hit animations (confetti) – does not touch LEDs
       let specialHit = false;
       const isDBull = score === 50 && hitValue === 25 && hitMult === 2;
       const isBull = score === 25 || (hitValue === 25 && hitMult === 1);
@@ -1695,7 +2024,7 @@
         showFloatScore('DOUBLE BULL!', 'dbull');
         showToast('💥 Double Bull!', 'success');
         state.lastEvent = { type: 'dbull', player: player.name, score, at: Date.now() };
-      } else if (isBull || score === 50) {
+      } else if (isBull || score === 50 || score === 25) {
         specialHit = true;
         fireBullConfetti();
         showFloatScore(score === 50 ? 'BULL 50!' : 'BULL!', 'bull');
@@ -1704,14 +2033,15 @@
       } else {
         state.lastEvent = null;
       }
-      // Push event to display screen
       await syncGameState();
 
       if (player.score === 0) {
         state.gameOver = true;
         state.winner = player.name;
         await syncGameState();
-        input.value = '';
+        const inputEl2 = $('score-input');
+        if (inputEl2) inputEl2.value = '';
+        setAIThinking(false);
 
         $('winner-name').textContent = player.name;
         $('overlay-winner').classList.add('show');
@@ -1730,7 +2060,7 @@
         $('overlay-winner').classList.remove('show');
         resetToStartScreen();
         await syncGameState();
-        return;
+        return 'win';
       }
 
       if (state.turnThrowIndex >= 3) {
@@ -1746,16 +2076,29 @@
         updateTurnInfo();
         await syncGameState();
         showToast(`Nächster Spieler: ${nextPlayerName}`, 'success');
-        input.value = '';
-        input.focus();
-        return;
+        if (!fromAI) {
+          await setLedForCurrentPlayer();
+          if (isAITurn()) setTimeout(() => runAITurn(), 500);
+        }
+        return 'turn-over';
       }
 
-      if (!specialHit) {
+      if (!specialHit && !fromAI) {
         showToast(`Wurf ${state.turnThrowIndex} gespeichert`, 'success');
       }
-      input.focus();
+      return 'ok';
     }
+
+    async function commitThrow() {
+      if (state.gameOver || state.bust || state.aiBusy || isAITurn()) return;
+      const input = $('score-input');
+      let score = parseInt(input.value, 10);
+      const result = await applyThrow(score, { fromAI: false });
+      if (result !== 'win' && input) {
+        input.focus();
+      }
+    }
+
 
     buildDartNumberGrid();
     updateScorePreview();
