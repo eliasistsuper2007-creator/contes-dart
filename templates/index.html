@@ -2171,15 +2171,16 @@
         const winOverlay = $('overlay-winner');
         const winLabel = winOverlay ? winOverlay.querySelector('.winner-label') : null;
         const winSub = winOverlay ? winOverlay.querySelector('.winner-sub') : null;
-        $('winner-name').textContent = player.name;
         if (aiWon) {
           if (winOverlay) winOverlay.classList.add('lose');
           if (winLabel) winLabel.textContent = 'GAME OVER';
+          $('winner-name').textContent = 'GAME OVER';
           if (winSub) winSub.textContent = 'Dart-KI gewinnt · LED blinkt rot…';
           showToast('GAME OVER – KI gewinnt', 'bust');
         } else {
           if (winOverlay) winOverlay.classList.remove('lose');
           if (winLabel) winLabel.textContent = 'GEWINNER';
+          $('winner-name').textContent = player.name;
           if (winSub) winSub.textContent = 'LED blinkt grün… Geräte schalten in 10 Sek. aus';
           fireWinConfetti();
         }
