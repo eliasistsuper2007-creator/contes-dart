@@ -279,6 +279,35 @@
     }
     #game-screen.active { display: block; }
 
+
+    .btn-end-game {
+      padding: 0.45rem 0.85rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #ff6b6b;
+      background: rgba(255, 50, 50, 0.12);
+      border: 1px solid rgba(255, 80, 80, 0.35);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-end-game:hover {
+      background: rgba(255, 50, 50, 0.25);
+      box-shadow: 0 0 18px rgba(255, 50, 50, 0.25);
+      color: #ff8a8a;
+    }
+    .winner-overlay.lose .winner-label { color: var(--neon-orange); }
+    .winner-overlay.lose .winner-name {
+      background: linear-gradient(135deg, var(--neon-orange), #ff2244);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: none;
+      filter: drop-shadow(0 0 16px rgba(255,107,0,0.6));
+    }
+
     .game-header {
       display: flex;
       align-items: center;
@@ -1029,6 +1058,8 @@
       history: [],
       gameOver: false,
       winner: null,
+      aborted: false,
+      humanLost: false,
       turnThrows: [],
       turnThrowIndex: 0,
       throwHistory: [],
@@ -1055,6 +1086,8 @@
             currentPlayer: state.currentPlayer,
             gameOver: state.gameOver,
             winner: state.winner,
+            aborted: !!state.aborted,
+            humanLost: !!state.humanLost,
             bust: state.bust,
             bustPlayer: state.bustPlayer,
             lastEvent: state.lastEvent,
@@ -1151,6 +1184,38 @@
       updateLedVisuals();
       await tuyaAction('led_off');
       return true;
+    }
+
+    async function tuyaBlinkLedRed(durationMs = 10000, intervalMs = 250) {
+      const end = Date.now() + durationMs;
+      let on = true;
+      while (Date.now() < end) {
+        try {
+          if (on) {
+            state.ledOn = true;
+            state.ledColor = 'red';
+            updateLedVisuals();
+            await tuyaAction('led_red');
+          } else {
+            state.ledOn = false;
+            state.ledColor = 'off';
+            updateLedVisuals();
+            await tuyaAction('led_off');
+          }
+        } catch (e) {
+          console.error('Blink-Rot-Fehler:', e);
+        }
+        on = !on;
+        await delay(intervalMs);
+      }
+      try {
+        state.ledOn = false;
+        state.ledColor = 'off';
+        updateLedVisuals();
+        await tuyaAction('led_off');
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     async function tuyaBlinkLedGreen(durationMs = 10000, intervalMs = 250) {
@@ -1678,6 +1743,33 @@
     }
 
 
+
+    async function shutdownDevices() {
+      try { await tuyaTurnSocketOff(); } catch (e) { console.error(e); }
+      try { await tuyaTurnLedOff(); } catch (e) { console.error(e); }
+    }
+
+    async function endGameManual() {
+      if (!state.players.length || state.gameOver) {
+        resetToStartScreen();
+        await syncGameState();
+        return;
+      }
+      state.gameOver = true;
+      state.aborted = true;
+      state.humanLost = false;
+      state.winner = null;
+      state.aiBusy = false;
+      setAIThinking(false);
+      showToast('Spiel beendet', 'bust');
+      await syncGameState();
+      await shutdownDevices();
+      await delay(1200);
+      resetToStartScreen();
+      state.aborted = false;
+      await syncGameState();
+    }
+
     async function startGame() {
       overlays.activate.classList.add('hidden');
       $('game-screen').classList.add('active');
@@ -1686,6 +1778,8 @@
       state.history = [];
       state.gameOver = false;
       state.winner = null;
+      state.aborted = false;
+      state.humanLost = false;
       state.turnThrows = [];
       state.turnThrowIndex = 0;
       state.throwHistory = [];
@@ -1724,6 +1818,9 @@
       state.round = 1;
       state.history = [];
       state.gameOver = false;
+      state.winner = null;
+      state.aborted = false;
+      state.humanLost = false;
       state.turnThrows = [];
       state.turnThrowIndex = 0;
       state.throwHistory = [];
@@ -2057,18 +2154,39 @@
       if (player.score === 0) {
         state.gameOver = true;
         state.winner = player.name;
+        state.aborted = false;
+        const aiWon = !!(player.isAI);
+        state.humanLost = aiWon;
         await syncGameState();
         const inputEl2 = $('score-input');
         if (inputEl2) inputEl2.value = '';
         setAIThinking(false);
 
+        const winOverlay = $('overlay-winner');
+        const winLabel = winOverlay ? winOverlay.querySelector('.winner-label') : null;
+        const winSub = winOverlay ? winOverlay.querySelector('.winner-sub') : null;
         $('winner-name').textContent = player.name;
-        $('overlay-winner').classList.add('show');
-        fireWinConfetti();
+        if (aiWon) {
+          if (winOverlay) winOverlay.classList.add('lose');
+          if (winLabel) winLabel.textContent = 'GAME OVER';
+          if (winSub) winSub.textContent = 'Dart-KI gewinnt · LED blinkt rot…';
+          showToast('GAME OVER – KI gewinnt', 'bust');
+        } else {
+          if (winOverlay) winOverlay.classList.remove('lose');
+          if (winLabel) winLabel.textContent = 'GEWINNER';
+          if (winSub) winSub.textContent = 'LED blinkt grün… Geräte schalten in 10 Sek. aus';
+          fireWinConfetti();
+        }
+        winOverlay.classList.add('show');
 
         try {
-          await tuyaBlinkLedGreen(10000, 250);
+          if (aiWon) {
+            await tuyaBlinkLedRed(10000, 250);
+          } else {
+            await tuyaBlinkLedGreen(10000, 250);
+          }
           await tuyaTurnSocketOff();
+          try { await tuyaTurnLedOff(); } catch (_) {}
         } catch (err) {
           console.error(err);
           showToast('Geräte konnten nicht ausgeschaltet werden', 'bust');
@@ -2076,7 +2194,10 @@
           try { await tuyaTurnLedOff(); } catch (_) {}
         }
 
-        $('overlay-winner').classList.remove('show');
+        if (winOverlay) {
+          winOverlay.classList.remove('show');
+          winOverlay.classList.remove('lose');
+        }
         resetToStartScreen();
         await syncGameState();
         return 'win';
@@ -2121,6 +2242,19 @@
 
     buildDartNumberGrid();
     updateScorePreview();
+
+    const endBtn = document.getElementById('btn-end-game');
+    if (endBtn) {
+      endBtn.addEventListener('click', async () => {
+        if (!confirm('Spiel wirklich beenden?')) return;
+        endBtn.disabled = true;
+        try {
+          await endGameManual();
+        } finally {
+          endBtn.disabled = false;
+        }
+      });
+    }
 
     document.querySelectorAll('.modifier-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
